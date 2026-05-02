@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jmath — Interactive Math Space</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <h1>🧮 jmath</h1>
+      <p class="tagline">Your interactive math space for learners</p>
+    </header>
+
+    <!-- Menu Screen -->
+    <section id="menu-screen" class="screen active">
+      <h2>Choose a Topic</h2>
+      <div class="topic-grid">
+        <button class="topic-btn" data-topic="addition">
+          <span class="topic-icon">➕</span>
+          <span class="topic-name">Addition</span>
+        </button>
+        <button class="topic-btn" data-topic="subtraction">
+          <span class="topic-icon">➖</span>
+          <span class="topic-name">Subtraction</span>
+        </button>
+        <button class="topic-btn" data-topic="multiplication">
+          <span class="topic-icon">✖️</span>
+          <span class="topic-name">Multiplication</span>
+        </button>
+        <button class="topic-btn" data-topic="division">
+          <span class="topic-icon">➗</span>
+          <span class="topic-name">Division</span>
+        </button>
+        <button class="topic-btn" data-topic="mixed">
+          <span class="topic-icon">🔀</span>
+          <span class="topic-name">Mixed</span>
+        </button>
+      </div>
+
+      <h2>Select Difficulty</h2>
+      <div class="difficulty-row">
+        <button class="diff-btn active" data-difficulty="easy">Easy</button>
+        <button class="diff-btn" data-difficulty="medium">Medium</button>
+        <button class="diff-btn" data-difficulty="hard">Hard</button>
+      </div>
+
+      <button id="start-btn" class="primary-btn">Start Quiz</button>
+
+      <div id="high-scores" class="high-scores hidden">
+        <h3>🏆 Best Scores</h3>
+        <ul id="scores-list"></ul>
+      </div>
+    </section>
+
+    <!-- Quiz Screen -->
+    <section id="quiz-screen" class="screen">
+      <div class="quiz-header">
+        <div class="quiz-meta">
+          <span id="topic-label" class="badge"></span>
+          <span id="diff-label" class="badge"></span>
+        </div>
+        <div class="quiz-stats">
+          <div class="stat">
+            <span class="stat-label">Score</span>
+            <span id="score-display" class="stat-value">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Q</span>
+            <span id="question-counter" class="stat-value">1 / 10</span>
+          </div>
+          <div class="stat timer-stat">
+            <span class="stat-label">⏱</span>
+            <span id="timer-display" class="stat-value">15</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="progress-bar-wrap">
+        <div id="progress-bar"></div>
+      </div>
+
+      <div id="question-card">
+        <p id="question-text" class="question-text"></p>
+
+        <div id="choices" class="choices-grid"></div>
+
+        <div id="feedback" class="feedback hidden">
+          <span id="feedback-icon"></span>
+          <span id="feedback-text"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Screen -->
+    <section id="results-screen" class="screen">
+      <div id="results-card" class="results-card">
+        <div id="results-emoji" class="results-emoji"></div>
+        <h2 id="results-title"></h2>
+        <p id="results-subtitle"></p>
+        <div class="results-stats">
+          <div class="result-stat">
+            <span class="result-stat-value" id="res-score"></span>
+            <span class="result-stat-label">Score</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-value" id="res-correct"></span>
+            <span class="result-stat-label">Correct</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-stat-value" id="res-time"></span>
+            <span class="result-stat-label">Avg Time</span>
+          </div>
+        </div>
+        <div class="results-actions">
+          <button id="retry-btn" class="primary-btn">Try Again</button>
+          <button id="menu-btn" class="secondary-btn">Main Menu</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
