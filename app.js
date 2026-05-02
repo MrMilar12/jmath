@@ -318,7 +318,7 @@ function showResults() {
   } else if (pct >= 80) {
     emoji = "🌟"; title = "Great Job!";     subtitle = "You're really getting the hang of this!";
   } else if (pct >= 60) {
-    emoji = "👍"; title = "Good Effort!";   subtitle = "Keep practising and you'll nail it!";
+    emoji = "👍"; title = "Good Effort!";   subtitle = "Keep practicing and you'll nail it!";
   } else if (pct >= 40) {
     emoji = "📚"; title = "Keep Going!";    subtitle = "Review your answers and try again.";
   } else {

@@ -51,7 +51,7 @@ jmath/
 2. Choose a **difficulty** level.
 3. Press **Start Quiz**.
 4. Select your answer before the timer runs out.
-5. Review your score and try to beat it!
+5. Review your score and practice to beat it!
 
 ## License
 
