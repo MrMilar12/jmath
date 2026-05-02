@@ -346,6 +346,7 @@ function renderLesson() {
           <h2>${escHtml(lesson.title)}</h2>
         </div>
         ${progressBar(pct)}
+        <!-- lesson.content is trusted static HTML authored in the modules array above -->
         <div class="lesson-content">${lesson.content}</div>
         <div class="btn-row">
           <button class="secondary" id="btn-back">← Back</button>
@@ -410,7 +411,7 @@ function checkAnswer(btn, selected, correct) {
   } else {
     btn.classList.add("wrong");
     fb.style.color = "var(--danger)";
-    fb.textContent = `❌ Incorrect – the answer was "${correct}"`;
+    fb.textContent = `❌ Incorrect – the answer was "${escHtml(correct)}"`;
     playSound("wrong");
     // Highlight correct answer using data-choice attribute
     document.querySelectorAll(".choice-btn").forEach(b => {
@@ -480,9 +481,19 @@ function loadTheme() {
 
 // ── Typewriter effect ────────────────────────────────────────────────────────
 
+// Track active timers so rapid re-calls don't leave orphaned intervals
+const _typeWriteTimers = new Map();
+
 function typeWrite(id, text, speed = 70) {
   const el = document.getElementById(id);
   if (!el) return;
+
+  // Cancel any existing timer for this element id
+  if (_typeWriteTimers.has(id)) {
+    clearInterval(_typeWriteTimers.get(id));
+    _typeWriteTimers.delete(id);
+  }
+
   el.textContent = "";
   el.classList.add("typewriter");
   let i = 0;
@@ -490,14 +501,18 @@ function typeWrite(id, text, speed = 70) {
     // Stop if the element has been removed from the DOM (screen changed)
     if (!document.getElementById(id)) {
       clearInterval(timer);
+      _typeWriteTimers.delete(id);
       return;
     }
     el.textContent += text[i++];
     if (i >= text.length) {
       clearInterval(timer);
+      _typeWriteTimers.delete(id);
       el.classList.remove("typewriter");
     }
   }, speed);
+
+  _typeWriteTimers.set(id, timer);
 }
 
 // ── Sound effects (Web Audio API) ───────────────────────────────────────────
