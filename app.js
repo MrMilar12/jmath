@@ -275,15 +275,16 @@ function renderHome() {
       <h1 class="typewriter" id="homeTitle"></h1>
       <p class="subtitle">Master mathematics through interactive lessons and instant quizzes.
         Your progress is saved automatically.</p>
-      <button onclick="renderModules()">🚀 Start Learning</button>
+      <button id="btn-start">🚀 Start Learning</button>
     </div>
   `);
 
+  document.getElementById("btn-start").addEventListener("click", renderModules);
   typeWrite("homeTitle", "JMath Learning");
 }
 
 function renderModules() {
-  let cards = modules.map(m => {
+  let cards = modules.map((m, idx) => {
     const done = isModuleDone(m);
     const prog = getProgress(m.id);
     const total = m.lessons.length;
@@ -292,13 +293,13 @@ function renderModules() {
     const badgeClass = done ? "done" : "";
 
     return `
-      <button class="module-card" onclick="startModule(${m.id})">
-        <span class="icon">${m.icon}</span>
+      <button class="module-card" data-module-idx="${idx}">
+        <span class="icon">${escHtml(m.icon)}</span>
         <span class="meta">
-          <strong>${m.title}</strong>
+          <strong>${escHtml(m.title)}</strong>
           <span>${m.lessons.length} lessons · ${quizCount(m)} quizzes</span>
         </span>
-        <span class="badge ${badgeClass}">${badgeText}</span>
+        <span class="badge ${badgeClass}">${escHtml(badgeText)}</span>
       </button>
     `;
   }).join("");
@@ -306,9 +307,15 @@ function renderModules() {
   render(`
     <h2>📚 Modules</h2>
     <p class="subtitle">Choose a module to begin or continue.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">${cards}</div>
-    <button class="secondary" onclick="renderHome()">← Home</button>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="module-list">${cards}</div>
+    <button class="secondary" id="btn-home">← Home</button>
   `);
+
+  document.getElementById("module-list").addEventListener("click", (e) => {
+    const card = e.target.closest(".module-card");
+    if (card) startModule(modules[Number(card.dataset.moduleIdx)].id);
+  });
+  document.getElementById("btn-home").addEventListener("click", renderHome);
 }
 
 function startModule(id) {
@@ -335,17 +342,19 @@ function renderLesson() {
     render(`
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div>
-          <p class="subtitle" style="margin-bottom:4px;">${currentModule.icon} ${currentModule.title}</p>
-          <h2>${lesson.title}</h2>
+          <p class="subtitle" style="margin-bottom:4px;">${escHtml(currentModule.icon)} ${escHtml(currentModule.title)}</p>
+          <h2>${escHtml(lesson.title)}</h2>
         </div>
         ${progressBar(pct)}
         <div class="lesson-content">${lesson.content}</div>
         <div class="btn-row">
-          <button class="secondary" onclick="prevLesson()">← Back</button>
-          <button onclick="nextLesson()">Next →</button>
+          <button class="secondary" id="btn-back">← Back</button>
+          <button id="btn-next">Next →</button>
         </div>
       </div>
     `);
+    document.getElementById("btn-back").addEventListener("click", prevLesson);
+    document.getElementById("btn-next").addEventListener("click", nextLesson);
   } else if (lesson.type === "quiz") {
     renderQuiz(lesson, pct);
   }
@@ -354,25 +363,33 @@ function renderLesson() {
 function renderQuiz(q, pct) {
   answered = false;
   const choices = q.choices.map((c, i) => `
-    <button class="choice-btn" id="choice-${i}" onclick="checkAnswer(this, '${escAttr(c)}', '${escAttr(q.answer)}')">
-      ${c}
+    <button class="choice-btn" id="choice-${i}" data-choice="${escAttr(c)}">
+      ${escHtml(c)}
     </button>
   `).join("");
 
   render(`
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div>
-        <p class="subtitle" style="margin-bottom:4px;">${currentModule.icon} ${currentModule.title} · Quiz</p>
-        <h3>${q.question}</h3>
+        <p class="subtitle" style="margin-bottom:4px;">${escHtml(currentModule.icon)} ${escHtml(currentModule.title)} · Quiz</p>
+        <h3>${escHtml(q.question)}</h3>
       </div>
       ${progressBar(pct)}
-      <div class="choices">${choices}</div>
+      <div class="choices" id="choices-container">${choices}</div>
       <p id="quiz-feedback" style="min-height:1.2em;text-align:center;font-weight:600;"></p>
       <div class="btn-row" id="quiz-next" style="display:none;">
-        <button onclick="nextLesson()">Next →</button>
+        <button id="quiz-next-btn">Next →</button>
       </div>
     </div>
   `);
+
+  // Event delegation – one listener on the container
+  document.getElementById("choices-container").addEventListener("click", (e) => {
+    const btn = e.target.closest(".choice-btn");
+    if (btn) checkAnswer(btn, btn.dataset.choice, q.answer);
+  });
+
+  document.getElementById("quiz-next-btn").addEventListener("click", nextLesson);
 }
 
 function checkAnswer(btn, selected, correct) {
@@ -395,9 +412,9 @@ function checkAnswer(btn, selected, correct) {
     fb.style.color = "var(--danger)";
     fb.textContent = `❌ Incorrect – the answer was "${correct}"`;
     playSound("wrong");
-    // Highlight correct
+    // Highlight correct answer using data-choice attribute
     document.querySelectorAll(".choice-btn").forEach(b => {
-      if (b.textContent.trim() === correct) b.classList.add("correct");
+      if (b.dataset.choice === correct) b.classList.add("correct");
     });
   }
 
@@ -422,21 +439,25 @@ function renderResult() {
   const pct = totalQuizzes > 0 ? Math.round((score / totalQuizzes) * 100) : 100;
   const stars = pct === 100 ? "⭐⭐⭐" : pct >= 60 ? "⭐⭐" : "⭐";
   const msg   = pct === 100 ? "Perfect score! 🎉" : pct >= 60 ? "Well done! Keep it up." : "Keep practicing!";
+  const modId = currentModule.id;
 
   render(`
     <div style="text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center;">
       <h2>Module Complete!</h2>
-      <p class="subtitle">${currentModule.icon} ${currentModule.title}</p>
+      <p class="subtitle">${escHtml(currentModule.icon)} ${escHtml(currentModule.title)}</p>
       <div class="result-score">${score}/${totalQuizzes}</div>
       <div class="stars">${stars}</div>
-      <p class="subtitle">${msg}</p>
+      <p class="subtitle">${escHtml(msg)}</p>
       ${progressBar(100)}
       <div class="btn-row">
-        <button class="secondary" onclick="startModule(${currentModule.id})">🔁 Retry</button>
-        <button onclick="renderModules()">📚 Modules</button>
+        <button class="secondary" id="btn-retry">🔁 Retry</button>
+        <button id="btn-modules">📚 Modules</button>
       </div>
     </div>
   `);
+
+  document.getElementById("btn-retry").addEventListener("click", () => startModule(modId));
+  document.getElementById("btn-modules").addEventListener("click", renderModules);
 
   if (pct === 100) launchConfetti();
 }
@@ -466,6 +487,11 @@ function typeWrite(id, text, speed = 70) {
   el.classList.add("typewriter");
   let i = 0;
   const timer = setInterval(() => {
+    // Stop if the element has been removed from the DOM (screen changed)
+    if (!document.getElementById(id)) {
+      clearInterval(timer);
+      return;
+    }
     el.textContent += text[i++];
     if (i >= text.length) {
       clearInterval(timer);
@@ -476,9 +502,18 @@ function typeWrite(id, text, speed = 70) {
 
 // ── Sound effects (Web Audio API) ───────────────────────────────────────────
 
+// Single shared AudioContext, created lazily on first use
+let _audioCtx = null;
+function getAudioContext() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+}
+
 function playSound(type) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -567,7 +602,18 @@ function escAttr(str) {
     .replace(/>/g, "&gt;");
 }
 
+// Escape a value for safe insertion as HTML text content
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 
 loadTheme();
+document.getElementById("themeToggle").addEventListener("click", toggleTheme);
 renderHome();
