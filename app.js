@@ -1602,6 +1602,11 @@ function renderActivity(t) {
 
 /* ── Topic 1 Activity: Stats calculator + Data Detective ── */
 function renderActivity1(t) {
+  // Auto-load sample data so charts are visible on first open
+  if (!appState.statsData.computed) {
+    appState.statsData.raw = "65, 70, 72, 74, 95";
+    appState.statsData.computed = computeStats(parseNums(appState.statsData.raw));
+  }
   const c = appState.statsData.computed;
   if (!appState.detective.set) {
     appState.detective.set = DETECTIVE_SETS[0];
