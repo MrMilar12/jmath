@@ -69,59 +69,223 @@ const QUIZ = {
       q: "Scores: 65, 70, 72, 74, 95. Which measure best represents a 'typical' score?",
       opts: ["Mean", "Median", "Mode"],
       a: "Median",
-      why: "The high outlier (95) inflates the mean. Median is more robust.",
+      formula: "Sorted data → find the middle value (not affected by outliers)",
+      steps: [
+        "Sort: 65, 70, 72, 74, 95",
+        "Mean = (65+70+72+74+95) ÷ 5 = 376 ÷ 5 = 75.2 — inflated by outlier 95",
+        "Median = 3rd value (middle) = 72 — not affected by outlier",
+        "Outlier 95 inflates the mean; Median is the more honest measure"
+      ],
+      why: "The outlier (95) inflates the mean. Median is more robust.",
       competency: "interpretation"
     },
     {
       q: "Dataset: 8, 8, 9, 10, 10, 10, 11. You want the most common value.",
       opts: ["Mean", "Median", "Mode"],
       a: "Mode",
+      formula: "Mode = the value with the highest frequency",
+      steps: [
+        "Count frequencies: 8 appears 2 times, 9 appears 1 time, 10 appears 3 times, 11 appears 1 time",
+        "10 has the highest frequency (3 times)",
+        "Mode = 10"
+      ],
       why: "Mode captures the most frequent observation, which is 10.",
       competency: "selection"
     },
     {
-      q: "What does a large standard deviation indicate?",
+      q: "What does a LARGE standard deviation indicate?",
       opts: ["Data is close together", "Data is spread out", "No outliers exist"],
       a: "Data is spread out",
-      why: "Standard deviation measures spread — larger means more variation.",
+      formula: "σ = √[Σ(x − μ)² ÷ n]",
+      steps: [
+        "Standard deviation (σ) measures how far values stray from the mean",
+        "Large σ → values are far from the mean → data is SPREAD OUT",
+        "Small σ → values cluster near the mean → data is TIGHT",
+        "Example: σ=1 means tight cluster; σ=50 means wide spread"
+      ],
+      why: "Standard deviation measures spread — larger value means more variation.",
       competency: "interpretation"
     },
     {
-      q: "Temps: 22, 21, 23, 22, 150. Which measure is most affected by the outlier?",
+      q: "Temps: 22, 21, 23, 22, 150. Which measure is MOST affected by the outlier?",
       opts: ["Mean", "Median", "Mode"],
       a: "Mean",
+      formula: "μ = (Σx) ÷ n",
+      steps: [
+        "Mean = (22+21+23+22+150) ÷ 5 = 238 ÷ 5 = 47.6 — skewed by 150",
+        "Median: sorted [21,22,22,23,150] → 3rd value = 22 (stable)",
+        "Mode = 22 (most frequent, also stable)",
+        "Only the Mean changes dramatically due to the outlier 150"
+      ],
       why: "Mean adds all values, so extreme outliers shift it significantly.",
+      competency: "selection"
+    },
+    {
+      q: "Grades: 88, 92, 85, 90, 95. What is the mean?",
+      opts: ["88", "90", "92", "95"],
+      a: "90",
+      formula: "μ = (Σx) ÷ n",
+      steps: [
+        "Sum all values: 88 + 92 + 85 + 90 + 95 = 450",
+        "Count of values: n = 5",
+        "Mean = 450 ÷ 5 = 90"
+      ],
+      why: "μ = (88+92+85+90+95)÷5 = 450÷5 = 90.",
+      competency: "interpretation"
+    },
+    {
+      q: "Dataset: 14, 17, 11, 13, 15, 17, 18. What is the median?",
+      opts: ["13", "15", "17", "14"],
+      a: "15",
+      formula: "Sort data → middle position = (n+1) ÷ 2",
+      steps: [
+        "Sort ascending: 11, 13, 14, 15, 17, 17, 18",
+        "n = 7 (odd) → middle position = (7+1)÷2 = 4th value",
+        "4th value = 15",
+        "Median = 15"
+      ],
+      why: "Sorted: [11,13,14,15,17,17,18] → 4th value = 15.",
+      competency: "interpretation"
+    },
+    {
+      q: "Test scores: 70, 72, 74. What is the variance?",
+      opts: ["2.67", "4", "1.63", "8"],
+      a: "2.67",
+      formula: "Variance (σ²) = Σ(x − μ)² ÷ n",
+      steps: [
+        "Mean μ = (70+72+74) ÷ 3 = 216 ÷ 3 = 72",
+        "Squared deviations: (70−72)²=4, (72−72)²=0, (74−72)²=4",
+        "Sum of squared deviations = 4 + 0 + 4 = 8",
+        "Variance = 8 ÷ 3 ≈ 2.67"
+      ],
+      why: "μ=72; Σ(x−μ)²=4+0+4=8; Variance=8÷3≈2.67.",
+      competency: "problemSolving"
+    },
+    {
+      q: "Most students scored 85 but one scored 15. Which measure is LEAST appropriate?",
+      opts: ["Median", "Mode", "Mean"],
+      a: "Mean",
+      formula: "Choose the measure resistant to extreme values",
+      steps: [
+        "The score of 15 is a severe outlier far from the rest",
+        "Mean: (85×n + 15) ÷ (n+1) — the mean is dragged far below 85 by the single 15",
+        "Median and Mode remain near 85 — capturing the true performance",
+        "Mean is least appropriate when strong outliers distort the center"
+      ],
+      why: "The outlier (15) heavily distorts the mean, making it unrepresentative.",
       competency: "selection"
     }
   ],
   2: [
     {
-      q: "f(x)= {50 if x≤2, 50+12(x-2) if x>2}. Find f(5).",
+      q: "f(x)= {50 if x≤2; 50+12(x-2) if x>2}. Find f(5).",
       opts: ["74", "80", "86", "96"],
       a: "86",
-      why: "x=5 > 2, so use 50 + 12(5-2) = 50 + 36 = 86.",
+      formula: "Identify interval → apply matching rule → substitute",
+      steps: [
+        "x = 5; check conditions: 5 ≤ 2? No. 5 > 2? Yes ✓",
+        "Use rule: 50 + 12(x − 2)",
+        "Substitute: 50 + 12(5 − 2) = 50 + 12(3)",
+        "= 50 + 36 = 86"
+      ],
+      why: "x=5>2, so: 50+12(5−2)=50+36=86.",
       competency: "problemSolving"
     },
     {
-      q: "f(x)= {2x if x<0, x² if x≥0}. Find f(-3).",
+      q: "f(x)= {2x if x<0; x² if x≥0}. Find f(-3).",
       opts: ["-6", "9", "6", "-9"],
       a: "-6",
-      why: "x=-3 < 0, use 2x: 2(-3) = -6.",
+      formula: "Check which condition x satisfies, then apply that rule",
+      steps: [
+        "x = −3; check: −3 < 0? Yes ✓ → use rule: 2x",
+        "f(−3) = 2(−3)",
+        "= −6"
+      ],
+      why: "x=−3<0, use 2x: 2(−3)=−6.",
       competency: "problemSolving"
     },
     {
-      q: "Electricity: f(x)={300 if x≤100, 300+9(x-100) if x>100}. Find f(120).",
+      q: "Electricity: f(x)={300 if x≤100; 300+9(x-100) if x>100}. Find f(120).",
       opts: ["318", "480", "420", "300"],
       a: "480",
-      why: "x=120 > 100, so 300 + 9(120-100) = 300 + 180 = 480.",
+      formula: "300 + 9(x − 100) when x > 100",
+      steps: [
+        "x = 120; check: 120 > 100? Yes ✓ → use: 300 + 9(x − 100)",
+        "= 300 + 9(120 − 100)",
+        "= 300 + 9(20)",
+        "= 300 + 180 = 480"
+      ],
+      why: "x=120>100: 300+9(120−100)=300+180=480.",
       competency: "problemSolving"
     },
     {
-      q: "Which real-life situation is best modeled by a piecewise function?",
+      q: "Which real-life situation is BEST modeled by a piecewise function?",
       opts: ["Constant salary", "Progressive tax brackets", "Flat-rate shipping"],
       a: "Progressive tax brackets",
+      formula: "Piecewise = different rules for different x-intervals",
+      steps: [
+        "Constant salary → one flat rule for all hours (not piecewise)",
+        "Flat-rate shipping → same cost regardless of weight (not piecewise)",
+        "Progressive tax → different rates apply to different income ranges",
+        "Each tax bracket uses a different formula → classic piecewise model!"
+      ],
       why: "Tax rates change at different income intervals — classic piecewise.",
       competency: "selection"
+    },
+    {
+      q: "f(x)= {x+3 if x<2; 2x-1 if x≥2}. Find f(2).",
+      opts: ["3", "5", "4", "1"],
+      a: "3",
+      formula: "Check boundary: x=2 satisfies which condition?",
+      steps: [
+        "x = 2; check conditions:",
+        "x < 2? No. x ≥ 2? Yes ✓",
+        "Use rule: 2x − 1",
+        "f(2) = 2(2) − 1 = 4 − 1 = 3"
+      ],
+      why: "x=2 satisfies x≥2, so: 2(2)−1=3.",
+      competency: "problemSolving"
+    },
+    {
+      q: "Mobile data: f(x)={0 if x≤1; 20(x-1) if x>1} GB. A user used 3.5 GB. Charge?",
+      opts: ["₱50", "₱70", "₱40", "₱60"],
+      a: "₱50",
+      formula: "20(x − 1) when x > 1 GB",
+      steps: [
+        "x = 3.5 GB; check: 3.5 > 1? Yes ✓ → use: 20(x − 1)",
+        "= 20(3.5 − 1)",
+        "= 20(2.5)",
+        "= 50 → charge is ₱50"
+      ],
+      why: "3.5>1: 20(3.5−1)=20(2.5)=₱50.",
+      competency: "problemSolving"
+    },
+    {
+      q: "f(x)= {3 if x<-1; x²+1 if -1≤x≤2; 5 if x>2}. Find f(0).",
+      opts: ["3", "5", "1", "0"],
+      a: "1",
+      formula: "x=0 falls in the interval −1 ≤ x ≤ 2",
+      steps: [
+        "x = 0; check intervals:",
+        "0 < −1? No.  −1 ≤ 0 ≤ 2? Yes ✓ → use: x² + 1",
+        "f(0) = (0)² + 1 = 0 + 1 = 1"
+      ],
+      why: "x=0 is in [−1,2]: x²+1=0+1=1.",
+      competency: "problemSolving"
+    },
+    {
+      q: "In a piecewise graph, an OPEN circle (∘) at a boundary means the point is:",
+      opts: ["Included in the function", "Excluded from the function", "The function stops there"],
+      a: "Excluded from the function",
+      formula: "Open circle ∘ → strict inequality (< or >); Closed dot • → (≤ or ≥)",
+      steps: [
+        "Closed dot (•) = endpoint IS included → used with ≤ or ≥",
+        "Open circle (∘) = endpoint is NOT included → used with < or >",
+        "Example: rule 'f(x)=2x for x<3' uses an open circle at x=3",
+        "The next rule (if any) may start with a closed dot at x=3"
+      ],
+      why: "Open circle means the boundary point is excluded (strict inequality).",
+      competency: "interpretation"
     }
   ],
   3: [
@@ -129,28 +293,112 @@ const QUIZ = {
       q: "f(x) = 2x² - 8x + 6. What is the x-coordinate of the vertex?",
       opts: ["2", "-2", "4", "-4"],
       a: "2",
-      why: "vx = -b/(2a) = -(-8)/(2×2) = 8/4 = 2.",
+      formula: "x_vertex = −b ÷ (2a)",
+      steps: [
+        "Identify coefficients: a = 2, b = −8, c = 6",
+        "x_v = −b ÷ (2a) = −(−8) ÷ (2 × 2)",
+        "= 8 ÷ 4",
+        "= 2"
+      ],
+      why: "vx = −(−8)÷(2×2) = 8÷4 = 2.",
       competency: "problemSolving"
     },
     {
       q: "f(x) = -3x² + 12x - 5. Does the parabola open upward or downward?",
       opts: ["Upward", "Downward", "Neither"],
       a: "Downward",
-      why: "a = -3 < 0, so the parabola opens downward.",
+      formula: "a > 0 → opens UP (∪);   a < 0 → opens DOWN (∩)",
+      steps: [
+        "Identify leading coefficient: a = −3",
+        "Check sign: a = −3 < 0",
+        "Negative a → parabola opens DOWNWARD ∩",
+        "Vertex is the MAXIMUM point of this parabola"
+      ],
+      why: "a = −3 < 0, so the parabola opens downward.",
       competency: "interpretation"
     },
     {
       q: "For f(x) = x² - 4x + 4, what is the vertex?",
       opts: ["(2, 0)", "(0, 4)", "(-2, 0)", "(4, 0)"],
       a: "(2, 0)",
-      why: "vx = 4/2 = 2, vy = 4 - 8 + 4 = 0. Vertex: (2, 0).",
+      formula: "x_v = −b ÷ (2a);   y_v = f(x_v)",
+      steps: [
+        "Identify: a=1, b=−4, c=4",
+        "x_v = −(−4) ÷ (2×1) = 4 ÷ 2 = 2",
+        "y_v = f(2) = (2)² − 4(2) + 4 = 4 − 8 + 4 = 0",
+        "Vertex = (2, 0)"
+      ],
+      why: "vx=4÷2=2; vy=4−8+4=0. Vertex: (2, 0).",
       competency: "problemSolving"
     },
     {
       q: "Ball height: h(t) = -5t² + 20t. What is the maximum height?",
       opts: ["15 m", "20 m", "25 m", "10 m"],
       a: "20 m",
-      why: "vt = -20/(2×-5) = 2s. h(2) = -5(4)+40 = -20+40 = 20 m.",
+      formula: "t_max = −b ÷ (2a);   h_max = h(t_max)",
+      steps: [
+        "a = −5, b = 20",
+        "t_max = −20 ÷ (2 × −5) = −20 ÷ −10 = 2 seconds",
+        "h_max = h(2) = −5(2²) + 20(2) = −5(4) + 40",
+        "= −20 + 40 = 20 m"
+      ],
+      why: "t=2s; h(2)=−5(4)+40=20 m.",
+      competency: "problemSolving"
+    },
+    {
+      q: "What is the y-intercept of f(x) = 3x² - 5x + 7?",
+      opts: ["3", "5", "7", "-5"],
+      a: "7",
+      formula: "y-intercept: set x = 0 → f(0) = c",
+      steps: [
+        "Substitute x = 0 into f(x)",
+        "f(0) = 3(0)² − 5(0) + 7",
+        "= 0 − 0 + 7 = 7",
+        "The y-intercept is always equal to c (the constant term)"
+      ],
+      why: "f(0)=3(0)²−5(0)+7=7. y-intercept is always c.",
+      competency: "interpretation"
+    },
+    {
+      q: "The axis of symmetry of f(x) = x² - 6x + 5 is:",
+      opts: ["x = 3", "x = -3", "x = 6", "x = 5"],
+      a: "x = 3",
+      formula: "Axis of symmetry: x = −b ÷ (2a)",
+      steps: [
+        "Identify: a = 1, b = −6, c = 5",
+        "x = −(−6) ÷ (2 × 1)",
+        "= 6 ÷ 2 = 3",
+        "Axis of symmetry: x = 3"
+      ],
+      why: "Axis: x = −(−6)÷(2×1) = 3.",
+      competency: "interpretation"
+    },
+    {
+      q: "f(x) = -2x² + 8x - 5. The vertex is a ___ point.",
+      opts: ["minimum", "maximum", "zero"],
+      a: "maximum",
+      formula: "a < 0 → opens DOWN ∩ → vertex is a MAXIMUM",
+      steps: [
+        "Identify leading coefficient: a = −2",
+        "a = −2 < 0 → parabola opens downward ∩",
+        "A downward-opening parabola has its peak at the TOP",
+        "Therefore the vertex is a MAXIMUM point"
+      ],
+      why: "a = −2 < 0 → opens down → vertex is a maximum.",
+      competency: "interpretation"
+    },
+    {
+      q: "A ball: h(t) = −4.9t² + 14.7t. After how many seconds does it reach max height?",
+      opts: ["1 s", "1.5 s", "2 s", "3 s"],
+      a: "1.5 s",
+      formula: "t_max = −b ÷ (2a)",
+      steps: [
+        "Identify: a = −4.9, b = 14.7",
+        "t_max = −14.7 ÷ (2 × −4.9)",
+        "= −14.7 ÷ (−9.8)",
+        "= 1.5 seconds"
+      ],
+      why: "t = −14.7÷(2×−4.9) = −14.7÷−9.8 = 1.5 s.",
       competency: "problemSolving"
     }
   ]
@@ -165,7 +413,8 @@ const appState = {
   statsData: { raw: "", computed: null },
   piecewise: { scenario: "taxi", x: 5, guessX: 0, guessY: "" },
   quadratic: { a: 1, b: 0, c: 0, vGame: { round: 0, target: null, pts: 0, guessX: "", guessY: "" } },
-  detective: { set: null, answered: false }
+  detective: { set: null, answered: false },
+  discussSlide: {}
 };
 
 const voiceState = {
@@ -1395,202 +1644,457 @@ function renderMotivation3(t) {
 }
 
 // ─── PHASE 2: Discussion ──────────────────────────────────────────────────────
+// ─── Slide helpers ────────────────────────────────────────────────────────────
+function slideCardHtml(slide) {
+  const bodyHtml = slide.body ? `<div class="slide-body">${slide.body}</div>` : "";
+  const formulaHtml = slide.formula
+    ? `<div class="slide-formula-block">${slide.formula}</div>` : "";
+  const exHtml = slide.example ? buildExampleHtml(slide.example) : "";
+  const kpHtml = slide.keyPoints
+    ? `<ul class="slide-key-points">${slide.keyPoints.map(p => `<li>${p}</li>`).join("")}</ul>` : "";
+  const tblHtml = slide.table ? buildSlideTableHtml(slide.table) : "";
+  const practHtml = slide.practice
+    ? `<div class="slide-practice-wrap"><button id="btnSlidePractice" class="secondary">${slide.practice.btn}</button></div>` : "";
+  return `
+    <div class="slide-card">
+      <div class="slide-badge-row"><span class="slide-badge">${slide.label}</span></div>
+      <div class="slide-icon-title">
+        <span class="slide-big-icon">${slide.icon}</span>
+        <h3 class="slide-title">${slide.title}</h3>
+      </div>
+      ${bodyHtml}${formulaHtml}${exHtml}${kpHtml}${tblHtml}${practHtml}
+    </div>`;
+}
+
+function buildExampleHtml(ex) {
+  const dataH  = ex.data  ? `<p class="slide-example-data">${ex.data}</p>` : "";
+  const stepsH = ex.steps ? `<div class="slide-example-steps">${ex.steps.map((s, i) =>
+    `<div class="slide-step"><span class="step-num">${i + 1}</span><span>${s}</span></div>`).join("")}</div>` : "";
+  const ansH   = ex.answer ? `<div class="slide-answer">✅ ${ex.answer}</div>` : "";
+  return `<div class="slide-example"><div class="slide-example-label">📝 Worked Example</div>${dataH}${stepsH}${ansH}</div>`;
+}
+
+function buildSlideTableHtml(rows) {
+  const [hdr, ...body] = rows;
+  return `<div class="slide-table-wrap"><table class="slide-table">
+    <thead><tr>${hdr.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${body.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function renderSlideDiscussion(t, topicTitle, slides) {
+  if (!appState.discussSlide) appState.discussSlide = {};
+  const idx   = appState.discussSlide[t.id] || 0;
+  const total = slides.length;
+  const slide = slides[Math.min(idx, total - 1)];
+
+  render(`
+    ${topicHeader(t, 2)}
+    <div class="phase-card discussion">
+      <div class="slide-show-header">
+        <h3>📽️ ${topicTitle}</h3>
+        <div class="slide-progress-row">
+          <span class="slide-counter">Slide ${idx + 1} / ${total}</span>
+          <div class="slide-dots-row">
+            ${slides.map((_, i) => `<span class="slide-dot${i === idx ? " active" : ""}"></span>`).join("")}
+          </div>
+        </div>
+      </div>
+      <div id="slideStage" class="slide-stage">${slideCardHtml(slide)}</div>
+      <div class="slide-nav-row">
+        <button id="btnSlidePrev" class="secondary"${idx === 0 ? " disabled" : ""}>◀ Prev Slide</button>
+        <span style="flex:1"></span>
+        <button id="btnSlideNext" class="${idx >= total - 1 ? "hidden-btn" : ""}">Next Slide ▶</button>
+        <button id="btnNextPhase" class="btn-glow${idx < total - 1 ? " hidden-btn" : ""}">Next: Activity →</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button data-go="modules" class="secondary">← Topics</button>
+      </div>
+    </div>
+  `);
+
+  function updateSlide(newIdx) {
+    appState.discussSlide[t.id] = newIdx;
+    const ns = slides[newIdx];
+    const stageEl = byId("slideStage");
+    if (stageEl) stageEl.innerHTML = slideCardHtml(ns);
+    const prevBtn = byId("btnSlidePrev");
+    const nextBtn = byId("btnSlideNext");
+    const finBtn  = byId("btnNextPhase");
+    const counter = document.querySelector(".slide-counter");
+    if (prevBtn) prevBtn.disabled = newIdx === 0;
+    if (nextBtn) nextBtn.className = newIdx >= total - 1 ? "hidden-btn" : "";
+    if (finBtn)  finBtn.className  = newIdx < total - 1 ? "btn-glow hidden-btn" : "btn-glow";
+    if (counter) counter.textContent = `Slide ${newIdx + 1} / ${total}`;
+    document.querySelectorAll(".slide-dot").forEach((d, i) => d.classList.toggle("active", i === newIdx));
+    wirePracticeBtn(ns);
+    const spk = ns.title + ". " + (ns.body ? ns.body.replace(/<[^>]+>/g, " ") : "") + " " +
+                (ns.formula ? ns.formula.replace(/\n/g, ". ") : "");
+    requestAutoSpeech(spk.replace(/\s+/g, " ").trim(), "normal");
+    stageEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function wirePracticeBtn(sl) {
+    on("btnSlidePractice", "click", () => {
+      swalPop({ title: sl.practice.title, html: sl.practice.html, icon: "info", confirmButtonText: "Got it! ✔" });
+    });
+  }
+
+  on("btnSlidePrev", "click", () => updateSlide(Math.max(0, (appState.discussSlide[t.id] || 0) - 1)));
+  on("btnSlideNext", "click", () => updateSlide(Math.min(total - 1, (appState.discussSlide[t.id] || 0) + 1)));
+  wirePracticeBtn(slide);
+  wireNextPhase(t.id, 2, 20, "Discussion complete",
+    "<p>Time for the hands-on activity! Apply what you have learned.</p>",
+    "Discussion Done! 🧠");
+}
+
+// ─── PHASE 2: Discussion ──────────────────────────────────────────────────────
 function renderDiscussion(t) {
+  if (!appState.discussSlide) appState.discussSlide = {};
+  appState.discussSlide[t.id] = 0;
   if (t.id === 1) renderDiscussion1(t);
   else if (t.id === 2) renderDiscussion2(t);
   else renderDiscussion3(t);
 }
 
 function renderDiscussion1(t) {
-  render(`
-    ${topicHeader(t, 2)}
-    <div class="phase-card discussion">
-      <h3>📖 Discussion: Measures of Central Tendency & Variability</h3>
-
-      <div class="discuss-section">
-        <div class="discuss-label">What is Mean?</div>
-        <p>The <strong>mean</strong> (average) is the sum of all values divided by the count.</p>
-        <div class="formula-box">μ = (Σx) ÷ n</div>
-        <div class="example-box">
-          <strong>Example:</strong> Scores: 70, 75, 80, 85, 90<br>
-          Mean = (70+75+80+85+90) ÷ 5 = 400 ÷ 5 = <strong>80</strong>
-        </div>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#ffd166;color:#222">What is Median?</div>
-        <p>The <strong>median</strong> is the middle value when data is sorted. It is not affected by outliers.</p>
-        <div class="formula-box" style="border-color:#ffd166">Arrange → Find center</div>
-        <div class="example-box">
-          <strong>Odd:</strong> [65, 70, <u>80</u>, 85, 95] → Median = <strong>80</strong><br>
-          <strong>Even:</strong> [65, 70, 80, 85] → Median = (70+80)÷2 = <strong>75</strong>
-        </div>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#ef6c9f">What is Mode?</div>
-        <p>The <strong>mode</strong> is the value that appears most often. Best for categorical data.</p>
-        <div class="example-box">
-          <strong>Example:</strong> [70, 80, 80, 85, 90] → Mode = <strong>80</strong>
-        </div>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#00b894;color:#fff">Variability</div>
-        <p><strong>Range</strong> = max − min &nbsp;|&nbsp; <strong>Variance</strong> = Σ(x−μ)²÷n &nbsp;|&nbsp; <strong>Std Dev</strong> = √Variance</p>
-        <p class="hint">High standard deviation = data is spread out. Low = data is clustered near the mean.</p>
-      </div>
-
-      <div class="callout-box">
-        <strong>🤔 Think About This:</strong>
-        <p>Dataset: [20, 21, 22, 21, 200]. The mean is 56.8. But 4 of the 5 values are around 21. Which measure is more honest?</p>
-        <button id="btnThink1" class="secondary" style="margin-top:8px">Reveal Answer 💡</button>
-      </div>
-
-      <div class="btn-row" style="margin-top:10px">
-        <button data-go="modules" class="secondary">← Topics</button>
-        <button id="btnNextPhase" class="btn-glow">Next: Activity →</button>
-      </div>
-    </div>
-  `);
-
-  on("btnThink1", "click", () => {
-    swalPop({
-      title: "Median or Mode! 🎯",
-      html: `<p>The value 200 is an extreme outlier. It pulls the <strong>mean</strong> to 56.8 — far from any real data point.</p>
-             <p style="margin-top:8px">The <strong>median</strong> (21) and <strong>mode</strong> (21) both capture the true typical value.</p>`,
-      icon: "info",
-      confirmButtonText: "Got it! ✔"
-    });
-  });
-
-  wireNextPhase(t.id, 2, 20, "Discussion complete",
-    "<p>Time to practice — you'll compute statistics yourself and play the Data Detective game!</p>",
-    "Discussion Done! 🧠");
+  const slides = [
+    {
+      icon: "📊", label: "Statistics · Slide 1 of 6",
+      title: "Central Tendency &amp; Variability",
+      body: "Statistics helps us make sense of large amounts of data by summarizing them with a few <strong>meaningful numbers</strong>. In this lesson, you will master the three measures of center and the measures of spread.",
+      keyPoints: [
+        "<strong>Mean</strong> — the arithmetic average of all values",
+        "<strong>Median</strong> — the middle value when data is sorted",
+        "<strong>Mode</strong> — the most frequently occurring value",
+        "<strong>Variability</strong> — how spread out the data is (Range, Variance, Std Dev)"
+      ]
+    },
+    {
+      icon: "μ", label: "Statistics · Slide 2 of 6",
+      title: "The Mean — Arithmetic Average",
+      body: "The <strong>mean</strong> (μ) adds all values and divides by the count. It uses every data point, making it powerful — but sensitive to outliers.",
+      formula: "μ = (x₁ + x₂ + ··· + xₙ) ÷ n   =   (Σx) ÷ n",
+      example: {
+        data: "Find the mean of: 70, 75, 80, 85, 90",
+        steps: [
+          "Add all values: 70 + 75 + 80 + 85 + 90 = 400",
+          "Count of values: n = 5",
+          "Mean = 400 ÷ 5 = <strong>80</strong>"
+        ],
+        answer: "Mean = 80"
+      },
+      keyPoints: [
+        "Works best when data has <strong>no extreme outliers</strong>",
+        "Can be distorted by very large or very small values — called outliers"
+      ]
+    },
+    {
+      icon: "📍", label: "Statistics · Slide 3 of 6",
+      title: "The Median — Middle Value",
+      body: "The <strong>median</strong> is the middle value of a <em>sorted</em> dataset. It is <strong>not affected by outliers</strong>, making it ideal for skewed data.",
+      formula: "Sort the data → Middle position = (n+1) ÷ 2\nFor even n: average the two middle values",
+      example: {
+        data: "Find the median of: 65, 70, 72, 74, 150",
+        steps: [
+          "Sort (already sorted): 65, 70, 72, 74, 150",
+          "n = 5 (odd) → middle position = (5+1)÷2 = 3rd value",
+          "3rd value = <strong>72</strong>"
+        ],
+        answer: "Median = 72 (not pulled by outlier 150!)"
+      },
+      practice: {
+        btn: "Why not Mean here? 🤔",
+        title: "Mean vs Median with Outlier",
+        html: "<p>Mean = (65+70+72+74+150)÷5 = 431÷5 = <strong>86.2</strong></p><p>But 4 of 5 values are below 80! The outlier 150 inflates the mean.</p><p>Median = <strong>72</strong> — a much more honest picture of the typical value.</p>"
+      }
+    },
+    {
+      icon: "🔢", label: "Statistics · Slide 4 of 6",
+      title: "The Mode — Most Frequent Value",
+      body: "The <strong>mode</strong> is the value that appears most often. A dataset can have <em>no mode</em>, <em>one mode</em>, or <em>multiple modes</em> (bimodal). It is the only measure that works for <strong>categorical data</strong>.",
+      formula: "Mode = the value(s) with the highest frequency",
+      example: {
+        data: "Find the mode of: 70, 80, 80, 85, 90, 90, 90",
+        steps: [
+          "Count frequencies: 70→1, 80→2, 85→1, 90→3",
+          "90 appears 3 times — highest frequency",
+          "Mode = <strong>90</strong>"
+        ],
+        answer: "Mode = 90"
+      },
+      keyPoints: [
+        "Best for <strong>categorical data</strong> (favorite subject, shirt size, grade level)",
+        "<strong>Bimodal</strong> example: [2, 2, 5, 5, 7] → two modes: 2 and 5",
+        "If all values appear once, there is <strong>no mode</strong>"
+      ]
+    },
+    {
+      icon: "📏", label: "Statistics · Slide 5 of 6",
+      title: "Measuring Spread: Variability",
+      body: "Variability tells us <em>how spread out</em> the data is. Two datasets can have the same mean but very different spreads! We measure this with Range, Variance, and Standard Deviation.",
+      formula: "Range    = Max − Min\nVariance (σ²) = Σ(x − μ)² ÷ n\nStd Dev  (σ)  = √Variance",
+      example: {
+        data: "Dataset: 70, 72, 74   →   Mean (μ) = 72",
+        steps: [
+          "Range = 74 − 70 = <strong>4</strong>",
+          "Squared deviations: (70−72)²=4, (72−72)²=0, (74−72)²=4",
+          "Variance = (4+0+4) ÷ 3 = 8÷3 ≈ <strong>2.67</strong>",
+          "Std Dev = √2.67 ≈ <strong>1.63</strong>"
+        ],
+        answer: "Range=4  |  Variance≈2.67  |  Std Dev≈1.63"
+      }
+    },
+    {
+      icon: "🎯", label: "Statistics · Slide 6 of 6",
+      title: "Choosing the Right Measure",
+      body: "Picking the right measure depends on your data's shape and purpose. Use this guide to decide:",
+      table: [
+        ["Measure", "Best When…", "Weakness"],
+        ["Mean (μ)", "Symmetric data, no outliers", "Distorted by outliers"],
+        ["Median", "Skewed data, outliers present", "Ignores most values"],
+        ["Mode", "Categorical data, finding patterns", "May not be unique"],
+        ["Std Dev (σ)", "Measuring consistency/spread", "Same units as data"]
+      ],
+      practice: {
+        btn: "📝 Test Yourself!",
+        title: "Quick Self-Check",
+        html: "<p><strong>Dataset: 50, 52, 53, 54, 200</strong></p><p>Which measure best represents the typical value?</p><hr style='margin:10px 0;border-color:rgba(255,255,255,.2)'><p><strong>✅ Answer: Median = 53</strong></p><p>Mean = (50+52+53+54+200)÷5 = 409÷5 = 81.8 — heavily distorted by 200.</p><p>Sorted [50,52,53,54,200] → 3rd value = <strong>53</strong>. Most representative!</p>"
+      }
+    }
+  ];
+  renderSlideDiscussion(t, "Discussion: Measures of Central Tendency &amp; Variability", slides);
 }
 
 function renderDiscussion2(t) {
-  render(`
-    ${topicHeader(t, 2)}
-    <div class="phase-card discussion">
-      <h3>📖 Discussion: Piecewise Functions</h3>
-
-      <div class="discuss-section">
-        <div class="discuss-label">What is a Piecewise Function?</div>
-        <p>A <strong>piecewise function</strong> uses different rules for different intervals of x.</p>
-        <div class="formula-box">
-          f(x) = { rule₁ &nbsp;if&nbsp; condition₁<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ rule₂ &nbsp;if&nbsp; condition₂
-        </div>
-        <p class="hint">Real-world examples: taxi fares, progressive tax, electricity billing, shipping rates.</p>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#ffd166;color:#222">How to Evaluate</div>
-        <p><strong>Step 1:</strong> Identify which interval your input x falls into.</p>
-        <p><strong>Step 2:</strong> Apply the corresponding rule.</p>
-        <div class="example-box">
-          f(x) = { 50 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if x ≤ 2<br>
-                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ 50 + 12(x−2) if x > 2<br><br>
-          Find f(5): &nbsp; 5 > 2 → use 50 + 12(5−2) = 50 + 36 = <strong>₱86</strong>
-        </div>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#6c5ce7">Graph Interpretation</div>
-        <p>Each piece of the function is graphed only in its own interval. The graph may have <strong>open</strong> or <strong>closed dots</strong> at boundaries.</p>
-        <p class="hint">Closed dot (•) means the point is included. Open dot (∘) means excluded.</p>
-      </div>
-
-      <div class="callout-box">
-        <strong>🤔 Try It:</strong>
-        <p>f(x) = { 3x if x < 0 &nbsp;|&nbsp; x² if x ≥ 0. What is f(−4)?</p>
-        <button id="btnThink2" class="secondary" style="margin-top:8px">Check Answer 💡</button>
-      </div>
-
-      <div class="btn-row" style="margin-top:10px">
-        <button data-go="modules" class="secondary">← Topics</button>
-        <button id="btnNextPhase" class="btn-glow">Next: Activity →</button>
-      </div>
-    </div>
-  `);
-
-  on("btnThink2", "click", () => {
-    swalPop({
-      title: "f(−4) = −12 ✅",
-      html: `<p>Since −4 < 0, we use the first rule: <strong>3x</strong>.</p>
-             <p style="margin-top:8px">f(−4) = 3 × (−4) = <strong>−12</strong></p>`,
-      icon: "success",
-      confirmButtonText: "Got it! ✔"
-    });
-  });
-
-  wireNextPhase(t.id, 2, 20, "Discussion complete",
-    "<p>Now let's interact with live piecewise graphs and test your prediction skills!</p>",
-    "Discussion Done! 🧠");
+  const slides = [
+    {
+      icon: "🔀", label: "Piecewise Functions · Slide 1 of 7",
+      title: "What is a Piecewise Function?",
+      body: "A <strong>piecewise function</strong> is a function defined by <em>different rules</em> for different parts of its domain. Think of it like different contracts that activate under different conditions.",
+      keyPoints: [
+        "Different formula for each x-interval",
+        "Real-world: taxi fare, electricity billing, progressive tax, mobile data",
+        "The domain is split into 'pieces', each with its own rule",
+        "Only <strong>one rule</strong> is ever active for any specific input value x"
+      ]
+    },
+    {
+      icon: "📝", label: "Piecewise Functions · Slide 2 of 7",
+      title: "Writing a Piecewise Function",
+      body: "A piecewise function uses a <strong>curly bracket { }</strong> to list all the rules and the conditions under which each rule applies.",
+      formula: "f(x) = {  Rule₁    if  Condition₁\n         {  Rule₂    if  Condition₂\n         {  Rule₃    if  Condition₃",
+      example: {
+        data: "Taxi Fare Function:",
+        steps: [
+          "Rule 1: ₱50 flat rate if distance ≤ 2 km (base fare)",
+          "Rule 2: ₱50 + ₱12(x−2) for each km above 2 km, if distance > 2 km"
+        ],
+        answer: "f(x) = {  50             if x ≤ 2\n         {  50 + 12(x−2)  if x > 2"
+      }
+    },
+    {
+      icon: "🔍", label: "Piecewise Functions · Slide 3 of 7",
+      title: "Evaluating: The 3-Step Process",
+      body: "Follow these <strong>3 steps</strong> every time you evaluate a piecewise function. Always check the condition <em>first</em> before substituting!",
+      keyPoints: [
+        "<strong>Step 1:</strong> Write down the value of x",
+        "<strong>Step 2:</strong> Test EACH condition — find which interval x belongs to",
+        "<strong>Step 3:</strong> Substitute x into the matching rule and calculate"
+      ],
+      example: {
+        data: "f(x) = {50 if x≤2;  50+12(x−2) if x>2}.   Find f(7).",
+        steps: [
+          "x = 7.  Test: 7 ≤ 2? No.  7 > 2? Yes ✓",
+          "Use the second rule: 50 + 12(x − 2)",
+          "Substitute: 50 + 12(7−2) = 50 + 12(5) = 50 + 60",
+          "= <strong>₱110</strong>"
+        ],
+        answer: "f(7) = ₱110"
+      }
+    },
+    {
+      icon: "⚡", label: "Piecewise Functions · Slide 4 of 7",
+      title: "Real Example: Electricity Bill",
+      body: "Electric companies charge at different rates based on consumption. Below a threshold you pay a flat fee; above it, extra charges apply — a real piecewise function!",
+      formula: "f(x) = {  ₱300                  if x ≤ 100 kWh\n         {  300 + 9(x − 100)   if x > 100 kWh",
+      example: {
+        data: "A household consumed 150 kWh. Compute the monthly bill.",
+        steps: [
+          "x = 150; test: 150 > 100? Yes ✓ → use second rule",
+          "f(150) = 300 + 9(150 − 100)",
+          "= 300 + 9(50)",
+          "= 300 + 450 = <strong>₱750</strong>"
+        ],
+        answer: "Electricity bill = ₱750"
+      }
+    },
+    {
+      icon: "🏛️", label: "Piecewise Functions · Slide 5 of 7",
+      title: "Real Example: Progressive Tax Brackets",
+      body: "Tax systems are the <strong>classic piecewise model</strong> — higher income earns a higher rate, but only on the portion above each threshold. This is why it is called <em>progressive</em>.",
+      formula: "Tax = {  0                        if income ≤ ₱250,000\n       {  20%(x − 250,000)      if ₱250,001 ≤ x ≤ ₱400,000\n       {  30,000 + 25%(x−400,000)  if x > ₱400,000",
+      keyPoints: [
+        "Only the income <strong>above</strong> each threshold is taxed at the higher rate",
+        "Income ≤ ₱250,000 is completely <strong>tax-exempt</strong>",
+        "Crossing a bracket boundary changes which rule you apply"
+      ],
+      practice: {
+        btn: "Compute: Income ₱500,000 💰",
+        title: "Tax Computation: ₱500,000",
+        html: "<p>x = ₱500,000 → x > ₱400,000 ✓</p><p>Tax = 30,000 + 25%(500,000 − 400,000)</p><p>= 30,000 + 0.25 × 100,000</p><p>= 30,000 + 25,000 = <strong>₱55,000</strong></p>"
+      }
+    },
+    {
+      icon: "📈", label: "Piecewise Functions · Slide 6 of 7",
+      title: "Graphing Piecewise Functions",
+      body: "Each piece of the function is graphed <em>only within its own interval</em>. Boundary points use open or closed circles to show whether that endpoint is included.",
+      formula: "Closed dot  (•) = endpoint IS included    →  uses  ≤  or  ≥\nOpen circle (∘) = endpoint NOT included  →  uses  <  or  >",
+      keyPoints: [
+        "Draw each piece <strong>only in its own x-range</strong> — never extend beyond its boundary",
+        "At each boundary, check which rule is active to determine dot type",
+        "If both pieces give the same y at a boundary → function is <strong>continuous</strong> there"
+      ],
+      practice: {
+        btn: "Open vs Closed Dot Example 🔵",
+        title: "Boundary Dot Type",
+        html: "<p>f(x) = { x+1 if x &lt; 2;  3x−3 if x ≥ 2 }</p><p>At x = 2:</p><p>Left piece: 2+1=3 → <strong>open circle at (2, 3)</strong></p><p>Right piece: 3(2)−3=3 → <strong>closed dot at (2, 3)</strong></p><p>Both give y=3 → the function is <strong>continuous</strong> at x=2!</p>"
+      }
+    },
+    {
+      icon: "🎯", label: "Piecewise Functions · Slide 7 of 7",
+      title: "Summary: Piecewise Functions",
+      body: "You now know how to read, write, evaluate, and graph piecewise functions. Here is your complete reference:",
+      keyPoints: [
+        "Identify which <strong>interval</strong> x belongs to first — this is the most critical step",
+        "Apply <strong>only the matching rule</strong> for that interval",
+        "At boundaries: ≤ or ≥ means closed dot; &lt; or &gt; means open circle",
+        "Graph each piece <strong>separately in its own interval</strong>",
+        "Real-world uses: taxi, electricity, tax, mobile data, tiered shipping"
+      ],
+      practice: {
+        btn: "📝 Final Review Problem",
+        title: "Complete Evaluation",
+        html: "<p>f(x) = { 2x+1 if x&lt;0 ;  x²−1 if x≥0 }</p><p><strong>Find f(−2), f(0), and f(3):</strong></p><hr style='margin:10px 0;border-color:rgba(255,255,255,.2)'><p>f(−2): −2 &lt; 0 → 2(−2)+1 = <strong>−3</strong></p><p>f(0): 0 ≥ 0 → (0)²−1 = <strong>−1</strong></p><p>f(3): 3 ≥ 0 → (3)²−1 = <strong>8</strong></p>"
+      }
+    }
+  ];
+  renderSlideDiscussion(t, "Discussion: Piecewise Functions", slides);
 }
 
 function renderDiscussion3(t) {
-  render(`
-    ${topicHeader(t, 2)}
-    <div class="phase-card discussion">
-      <h3>📖 Discussion: Quadratic Functions</h3>
-
-      <div class="discuss-section">
-        <div class="discuss-label">Standard Form</div>
-        <p>A <strong>quadratic function</strong> has the form:</p>
-        <div class="formula-box">f(x) = ax² + bx + c &nbsp;(a ≠ 0)</div>
-        <p class="hint">When a > 0, the parabola opens <strong>upward</strong>. When a < 0, it opens <strong>downward</strong>.</p>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#ffd166;color:#222">The Vertex</div>
-        <p>The <strong>vertex</strong> is the turning point of the parabola — either its minimum or maximum.</p>
-        <div class="formula-box" style="border-color:#ffd166">
-          Vertex x = −b ÷ (2a)<br>
-          Vertex y = f(vertex x)
-        </div>
-        <div class="example-box">
-          f(x) = 2x² − 8x + 6<br>
-          vx = −(−8) ÷ (2×2) = 8÷4 = <strong>2</strong><br>
-          vy = 2(4) − 8(2) + 6 = 8 − 16 + 6 = <strong>−2</strong><br>
-          Vertex: <strong>(2, −2)</strong>
-        </div>
-      </div>
-
-      <div class="discuss-section">
-        <div class="discuss-label" style="background:#ef6c9f">Graph Behavior</div>
-        <p>The <strong>axis of symmetry</strong> is the vertical line x = vertex x. The parabola is symmetric about it.</p>
-        <p class="hint">Intercepts: Set f(x) = 0 and solve. The y-intercept is always (0, c).</p>
-      </div>
-
-      <div class="callout-box">
-        <strong>🤔 Quick Check:</strong>
-        <p>For f(x) = −3x² + 12x − 9, does the parabola open up or down? What is the vertex?</p>
-        <button id="btnThink3" class="secondary" style="margin-top:8px">Reveal Answer 💡</button>
-      </div>
-
-      <div class="btn-row" style="margin-top:10px">
-        <button data-go="modules" class="secondary">← Topics</button>
-        <button id="btnNextPhase" class="btn-glow">Next: Activity →</button>
-      </div>
-    </div>
-  `);
-
-  on("btnThink3", "click", () => {
-    swalPop({
-      title: "Opens Downward, Vertex (2, 3) ✅",
-      html: `<p>a = −3 < 0 → opens <strong>downward</strong>.</p>
-             <p style="margin-top:8px">vx = −12 ÷ (2×−3) = −12 ÷ −6 = <strong>2</strong></p>
-             <p>vy = −3(4) + 12(2) − 9 = −12 + 24 − 9 = <strong>3</strong></p>
-             <p>Vertex: <strong>(2, 3)</strong></p>`,
-      icon: "success",
-      confirmButtonText: "Got it! ✔"
-    });
-  });
-
-  wireNextPhase(t.id, 2, 20, "Discussion complete",
-    "<p>Time to use the dynamic graph engine and find vertices in the activity!</p>",
-    "Discussion Done! 🧠");
+  const slides = [
+    {
+      icon: "📈", label: "Quadratic Functions · Slide 1 of 7",
+      title: "What is a Quadratic Function?",
+      body: "A <strong>quadratic function</strong> is a polynomial of degree 2. Its graph is a <strong>parabola</strong> — a smooth symmetric U-shape (∪) or arch (∩). Quadratics appear in projectile motion, bridges, satellite dishes, and business profit models.",
+      formula: "f(x) = ax² + bx + c     where  a ≠ 0",
+      keyPoints: [
+        "<strong>a</strong> — controls direction (up or down) and the width of the parabola",
+        "<strong>b</strong> — shifts the axis of symmetry left or right",
+        "<strong>c</strong> — the y-intercept (the value of f when x = 0)"
+      ]
+    },
+    {
+      icon: "⬆️", label: "Quadratic Functions · Slide 2 of 7",
+      title: "Opening Direction: Controlled by 'a'",
+      body: "The <strong>leading coefficient a</strong> determines whether the parabola opens up (∪) or down (∩), and whether the vertex is a minimum or maximum point.",
+      formula: "a > 0  →  opens UPWARD  ∪  →  minimum vertex\na < 0  →  opens DOWNWARD  ∩  →  maximum vertex\n|a| large = narrow;   |a| small = wide parabola",
+      example: {
+        data: "Identify the direction and vertex type:",
+        steps: [
+          "f(x) = 2x² − 5x + 1 → a=2 &gt; 0 → opens UP ∪ → <strong>minimum</strong> vertex",
+          "f(x) = −3x² + 4x − 1 → a=−3 &lt; 0 → opens DOWN ∩ → <strong>maximum</strong> vertex",
+          "f(x) = 0.5x² + x → a=0.5 &gt; 0 → opens UP ∪ → wide parabola, minimum"
+        ],
+        answer: "Positive a → upward cup ∪ (minimum);  Negative a → downward arch ∩ (maximum)"
+      }
+    },
+    {
+      icon: "⭐", label: "Quadratic Functions · Slide 3 of 7",
+      title: "The Vertex — The Turning Point",
+      body: "The <strong>vertex</strong> is the most important point on the parabola — it is where the curve changes direction. It is the <em>minimum</em> if a&gt;0, or the <em>maximum</em> if a&lt;0.",
+      formula: "x_vertex = −b ÷ (2a)\ny_vertex = f(x_vertex)   ← substitute back into f(x)",
+      example: {
+        data: "Find the vertex of f(x) = 2x² − 8x + 6:",
+        steps: [
+          "Identify: a=2, b=−8, c=6",
+          "x_v = −(−8) ÷ (2×2) = 8 ÷ 4 = <strong>2</strong>",
+          "y_v = f(2) = 2(4) − 8(2) + 6 = 8 − 16 + 6 = <strong>−2</strong>",
+          "Vertex = (2, −2) — minimum point since a=2&gt;0"
+        ],
+        answer: "Vertex = (2, −2)"
+      }
+    },
+    {
+      icon: "📐", label: "Quadratic Functions · Slide 4 of 7",
+      title: "Axis of Symmetry &amp; Intercepts",
+      body: "The parabola is perfectly symmetric about a vertical line through the vertex. The <strong>axis of symmetry</strong> and <strong>intercepts</strong> are essential for graphing.",
+      formula: "Axis of symmetry:  x = −b ÷ (2a)\ny-intercept:  f(0) = c   (always equal to c — no calculation needed!)\nx-intercepts:  solve ax² + bx + c = 0 by factoring or quadratic formula",
+      keyPoints: [
+        "The axis of symmetry passes through the vertex and is the same x as the vertex",
+        "y-intercept is <strong>always c</strong> — just read it from the standard form equation",
+        "x-intercepts (roots/zeros) — where the parabola crosses the x-axis"
+      ],
+      practice: {
+        btn: "Find axis &amp; intercepts of f(x)=x²−4x+3 💡",
+        title: "Axis of Symmetry & Intercepts",
+        html: "<p>f(x) = x² − 4x + 3 → a=1, b=−4, c=3</p><p><strong>Axis of symmetry:</strong> x = −(−4)÷(2×1) = 4÷2 = <strong>x = 2</strong></p><p><strong>y-intercept:</strong> f(0) = c = <strong>(0, 3)</strong></p><p><strong>x-intercepts:</strong> x²−4x+3=0 → (x−1)(x−3)=0 → <strong>x=1 and x=3</strong></p><p><strong>Vertex:</strong> y=f(2)=4−8+3=−1 → Vertex <strong>(2, −1)</strong></p>"
+      }
+    },
+    {
+      icon: "⛹️", label: "Quadratic Functions · Slide 5 of 7",
+      title: "Application: Projectile Motion",
+      body: "When you throw a ball upward, its height follows a <strong>quadratic function</strong>! The vertex gives the maximum height, and the x-intercepts tell you when it lands.",
+      formula: "h(t) = −(g/2)t² + v₀t + h₀\nFor Earth (g = 10 m/s²):  h(t) = −5t² + v₀t + h₀",
+      example: {
+        data: "A ball is thrown upward: h(t) = −5t² + 30t (meters, seconds)",
+        steps: [
+          "a = −5 &lt; 0 → opens down ∩ → vertex is the MAXIMUM height",
+          "t_max = −30 ÷ (2 × −5) = −30 ÷ −10 = <strong>3 seconds</strong>",
+          "Max height = h(3) = −5(9) + 30(3) = −45 + 90 = <strong>45 m</strong>",
+          "Lands when h=0: −5t²+30t=0 → t(−5t+30)=0 → t=0 or <strong>t=6 s</strong>"
+        ],
+        answer: "Maximum height = 45 m at t = 3 s;  lands at t = 6 s"
+      }
+    },
+    {
+      icon: "🔄", label: "Quadratic Functions · Slide 6 of 7",
+      title: "Vertex Form — Graphing Made Easy",
+      body: "The <strong>vertex form</strong> directly reveals the vertex (h, k), making it easy to sketch the parabola quickly without computing.",
+      formula: "Vertex form:  f(x) = a(x − h)² + k\nwhere  (h, k)  is the vertex  and  a  determines the opening",
+      example: {
+        data: "Convert f(x) = x² − 6x + 5 to vertex form:",
+        steps: [
+          "Find vertex: h = −(−6) ÷ (2×1) = 3",
+          "k = f(3) = 9 − 18 + 5 = <strong>−4</strong>",
+          "Vertex form: f(x) = (x − 3)² − 4",
+          "Vertex (3, −4), opens upward (a=1&gt;0)"
+        ],
+        answer: "f(x) = (x−3)² − 4,   Vertex: (3, −4)"
+      }
+    },
+    {
+      icon: "🎯", label: "Quadratic Functions · Slide 7 of 7",
+      title: "Key Concepts: Quadratic Functions",
+      body: "You have now learned the complete toolkit for analyzing quadratic functions. Use this reference:",
+      table: [
+        ["Concept", "Formula", "Meaning"],
+        ["Direction", "Sign of a", "a&gt;0 → UP ∪ (min);  a&lt;0 → DOWN ∩ (max)"],
+        ["Vertex x", "−b ÷ (2a)", "x-coordinate of the turning point"],
+        ["Vertex y", "f(vertex x)", "y-coordinate of the turning point"],
+        ["Axis of symmetry", "x = −b ÷ (2a)", "Vertical line through the vertex"],
+        ["y-intercept", "(0, c)", "Always equal to c"],
+        ["Vertex form", "a(x−h)²+k", "(h, k) is the vertex"]
+      ],
+      practice: {
+        btn: "📝 Full Analysis Practice",
+        title: "Complete Analysis: f(x) = −2x² + 4x + 6",
+        html: "<p>a=−2, b=4, c=6</p><p><strong>Direction:</strong> a&lt;0 → opens DOWN ∩ → vertex is MAXIMUM</p><p><strong>Vertex:</strong> x_v = −4÷(2×−2) = −4÷−4 = 1;  y_v = f(1) = −2+4+6 = <strong>8</strong> → Vertex (1, 8)</p><p><strong>Axis of symmetry:</strong> x = 1</p><p><strong>y-intercept:</strong> (0, 6)</p><p><strong>Maximum value:</strong> 8 (at x = 1)</p>"
+      }
+    }
+  ];
+  renderSlideDiscussion(t, "Discussion: Quadratic Functions", slides);
 }
 
 // ─── PHASE 3: Activity ────────────────────────────────────────────────────────
@@ -1994,19 +2498,42 @@ function renderQuizItem(t) {
       fb.textContent = (ok ? "✅ " : "❌ ") + item.why;
       fb.style.color = ok ? "var(--success)" : "var(--danger)";
 
-      swalPop({
-        title: ok ? "Correct! 🎉" : "Incorrect",
-        html: `<p>${esc(item.why)}</p>`,
-        icon: ok ? "success" : "error",
-        timer: 2200,
-        timerProgressBar: true,
-        showConfirmButton: false
-      }).then(() => {
-        qs.index += 1;
-        renderQuizItem(t);
-      });
+      if (ok) {
+        swalPop({
+          title: "Correct! 🎉",
+          html: `<p style="font-size:.95rem">${esc(item.why)}</p>`,
+          icon: "success",
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        }).then(() => { qs.index += 1; renderQuizItem(t); });
+      } else {
+        swalPop({
+          title: "📚 Let's Learn This!",
+          html: quizWrongHtml(item, chosen),
+          icon: "error",
+          confirmButtonText: "I understand! 📖",
+          allowOutsideClick: false,
+          customClass: { popup: "swal-wide-popup" }
+        }).then(() => { qs.index += 1; renderQuizItem(t); });
+      }
     });
   });
+}
+
+function quizWrongHtml(item, chosen) {
+  const stepsHtml = (item.steps || []).map((s, i) =>
+    `<div class="swal-step"><span class="swal-step-num">${i + 1}</span><span>${s}</span></div>`
+  ).join("");
+  return `<div class="swal-solution">
+    <div class="swal-wrong-badge">❌ Your answer: ${esc(chosen)}</div>
+    <p style="font-size:.88rem;font-weight:700;margin:8px 0 4px">📐 Formula / Rule:</p>
+    <div class="swal-formula-box">${esc(item.formula || "")}</div>
+    <p style="font-size:.88rem;font-weight:700;margin:10px 0 6px">📝 Step-by-step Solution:</p>
+    <div class="swal-steps">${stepsHtml}</div>
+    <div class="swal-correct-box">✅ Correct Answer: ${esc(item.a)}</div>
+    <p class="swal-insight">${esc(item.why)}</p>
+  </div>`;
 }
 
 function renderQuizResult(t, qs) {

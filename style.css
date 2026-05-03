@@ -1017,6 +1017,123 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 
 /* ─── Canvas ───────────────────────────────────────────────── */
+/* ─── Slide Show ───────────────────────────────────────────── */
+.slide-show-header { display: grid; gap: 6px; margin-bottom: 2px; }
+.slide-progress-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.slide-counter { font-size: .82rem; color: var(--muted); font-weight: 800; white-space: nowrap; }
+.slide-dots-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.slide-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  transition: background .3s, transform .3s;
+  flex-shrink: 0;
+}
+.slide-dot.active { background: var(--accent); transform: scale(1.4); }
+.slide-stage { min-height: 340px; }
+.slide-card {
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 18px;
+  background: linear-gradient(148deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+  padding: 20px 22px;
+  display: grid; gap: 14px;
+  min-height: 320px;
+  transition: opacity .2s;
+}
+.slide-badge-row { display: flex; justify-content: space-between; align-items: center; }
+.slide-badge {
+  font-size: .7rem; font-weight: 900; letter-spacing: .07em;
+  text-transform: uppercase; background: var(--accent); color: #fff;
+  border-radius: 999px; padding: 4px 13px;
+}
+.slide-icon-title { display: flex; align-items: center; gap: 14px; }
+.slide-big-icon { font-size: 2.5rem; line-height: 1; flex-shrink: 0; font-style: normal; }
+.slide-title {
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-weight: 900; margin: 0; line-height: 1.25;
+}
+.slide-body { line-height: 1.72; font-size: .95rem; }
+.slide-formula-block {
+  font-family: "Courier New", monospace;
+  font-size: .92rem; font-weight: 700;
+  background: rgba(0,0,0,.28);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  padding: 12px 16px; line-height: 2;
+  white-space: pre-line;
+}
+.slide-example {
+  background: rgba(255,209,102,.08);
+  border: 1px solid rgba(255,209,102,.22);
+  border-radius: 14px; padding: 14px 16px;
+  display: grid; gap: 10px;
+}
+.slide-example-label {
+  font-size: .72rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--warn);
+}
+.slide-example-data { font-weight: 700; font-size: .93rem; }
+.slide-example-steps { display: grid; gap: 7px; }
+.slide-step { display: flex; align-items: flex-start; gap: 10px; font-size: .9rem; line-height: 1.5; }
+.step-num {
+  min-width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: .72rem; font-weight: 900;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.slide-answer {
+  font-weight: 800; color: var(--success); font-size: .93rem;
+  padding: 8px 12px; background: rgba(0,200,120,.12);
+  border-radius: 10px; white-space: pre-line;
+}
+.slide-key-points { padding-left: 0; list-style: none; display: grid; gap: 8px; margin: 0; }
+.slide-key-points li { display: flex; align-items: flex-start; gap: 9px; font-size: .92rem; line-height: 1.5; }
+.slide-key-points li::before { content: "▸"; color: var(--accent); font-weight: 900; flex-shrink: 0; margin-top: 2px; }
+.slide-table-wrap { overflow-x: auto; border-radius: 10px; }
+.slide-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.slide-table th {
+  background: rgba(38,208,206,.18); padding: 8px 12px;
+  text-align: left; font-weight: 900;
+}
+.slide-table td { padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.slide-table tr:hover td { background: rgba(255,255,255,.04); }
+.slide-practice-wrap { display: flex; justify-content: center; padding-top: 4px; }
+.slide-nav-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.hidden-btn { display: none !important; }
+
+/* ─── SweetAlert wrong-answer solution box ─────────────────── */
+.swal-wide-popup { max-width: min(96vw, 580px) !important; }
+.swal-solution { text-align: left; }
+.swal-wrong-badge {
+  display: inline-block;
+  background: rgba(255,107,107,.15); border: 1px solid rgba(255,107,107,.3);
+  color: #ff6b6b; border-radius: 8px; padding: 5px 12px;
+  font-size: .86rem; font-weight: 700; margin-bottom: 10px;
+}
+.swal-formula-box {
+  font-family: "Courier New", monospace; font-size: .88rem; font-weight: 700;
+  background: rgba(38,208,206,.12); border-left: 3px solid #26d0ce;
+  padding: 9px 13px; border-radius: 0 9px 9px 0; margin: 6px 0;
+}
+.swal-steps { display: grid; gap: 6px; margin: 8px 0; }
+.swal-step { display: flex; align-items: flex-start; gap: 9px; font-size: .87rem; line-height: 1.5; }
+.swal-step-num {
+  min-width: 20px; height: 20px; border-radius: 50%;
+  background: #26d0ce; color: #fff; font-size: .7rem; font-weight: 900;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.swal-correct-box {
+  background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.3);
+  border-radius: 10px; padding: 9px 13px;
+  font-weight: 800; color: #2ecc71; margin-top: 10px;
+}
+.swal-insight { font-size: .82rem; color: rgba(255,255,255,.62); margin-top: 8px; }
+
 canvas {
   width: 100%; max-width: 100%;
   border: 1px solid var(--panel-b);
