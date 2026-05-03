@@ -642,8 +642,11 @@ function syncTeacherCoach() {
   const old = byId("teacherCoachOverlay");
   if (!ctx) {
     if (old) old.remove();
+    document.body.classList.remove("has-coach");
     return;
   }
+
+  document.body.classList.add("has-coach");
 
   const html = `
     <aside id="teacherCoachOverlay" class="teacher-coach-overlay motion-item" style="--motion-delay:120ms">

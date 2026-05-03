@@ -590,11 +590,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 
 .teacher-coach-overlay {
-  position: fixed;
-  right: 18px;
-  top: 96px;
-  width: min(360px, calc(100vw - 30px));
-  z-index: 145;
+  position: static;
+  width: min(1020px, calc(100% - 32px));
+  margin: 10px auto 0;
+  z-index: 30;
   pointer-events: none;
 }
 .teacher-coach-overlay .teacher-guide {
@@ -938,7 +937,23 @@ canvas {
   .teacher-bubble::before { display: none; }
 }
 
-@media (max-width: 1180px) {
+@media (min-width: 1500px) {
+  .teacher-coach-overlay {
+    position: fixed;
+    right: 18px;
+    top: 96px;
+    width: 360px;
+    margin: 0;
+    z-index: 145;
+  }
+  body.has-coach #app {
+    width: min(1020px, calc(100% - 420px));
+    margin-right: 390px;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 1499px) {
   .teacher-coach-overlay {
     position: static;
     width: min(1020px, calc(100% - 32px));
