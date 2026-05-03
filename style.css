@@ -460,11 +460,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   background: #8f2c2c;
   border: 2px solid #6f1f1f;
   border-radius: 4px 4px 8px 8px;
-  animation: mouthTalk .24s ease-in-out infinite alternate;
 }
 @keyframes mouthTalk {
   from { height: 5px; }
   to { height: 10px; }
+}
+.teacher-css-anim.is-speaking .sir-smile {
+  animation: mouthTalk .12s ease-in-out infinite alternate;
 }
 .sir-torso-row {
   display: flex; align-items: flex-start; margin-top: 2px;
@@ -702,6 +704,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   grid-template-columns: 180px 1fr;
   border-radius: 18px;
   padding: 12px 14px;
+}
+.teacher-coach-overlay.is-speaking .teacher-guide {
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, .35), 0 16px 30px rgba(0,0,0,.34);
 }
 .teacher-coach-overlay .teacher-bubble {
   min-height: 96px;

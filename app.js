@@ -506,9 +506,18 @@ function splitNarration(text) {
   return out;
 }
 
+function setTeacherSpeaking(active) {
+  document.querySelectorAll(".teacher-css-anim").forEach(el => {
+    el.classList.toggle("is-speaking", !!active);
+  });
+  const overlay = byId("teacherCoachOverlay");
+  if (overlay) overlay.classList.toggle("is-speaking", !!active);
+}
+
 function speakQueueNext() {
   if (!("speechSynthesis" in window)) return;
   if (!voiceRuntime.queue.length) {
+    setTeacherSpeaking(false);
     clearVoiceSubtitle();
     return;
   }
@@ -522,16 +531,23 @@ function speakQueueNext() {
   utter.pitch = voiceRuntime.isQuirky ? 1.35 : voiceState.pitch;
   utter.volume = voiceState.volume;
   utter.onstart = () => {
+    setTeacherSpeaking(true);
     const lead = voiceRuntime.isQuirky ? "Sir Jayson (quirky): " : "Sir Jayson: ";
     setVoiceSubtitle(lead + part);
   };
   utter.onend = () => {
     if (voiceRuntime.queue.length) speakQueueNext();
-    else clearVoiceSubtitle();
+    else {
+      setTeacherSpeaking(false);
+      clearVoiceSubtitle();
+    }
   };
   utter.onerror = () => {
     if (voiceRuntime.queue.length) speakQueueNext();
-    else clearVoiceSubtitle();
+    else {
+      setTeacherSpeaking(false);
+      clearVoiceSubtitle();
+    }
   };
   synth.speak(utter);
 }
@@ -545,6 +561,7 @@ function speakText(text, mode = "normal") {
   if (!msg) return;
 
   const synth = window.speechSynthesis;
+  setTeacherSpeaking(false);
   synth.cancel();
   voiceRuntime.isQuirky = mode === "quirky";
   voiceRuntime.queue = splitNarration(msg);
@@ -569,6 +586,7 @@ function stopSpeaking() {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
   voiceRuntime.queue = [];
+  setTeacherSpeaking(false);
   clearVoiceSubtitle();
 }
 
