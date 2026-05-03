@@ -174,6 +174,12 @@ const voiceState = {
   volume: 1
 };
 
+const voiceRuntime = {
+  voicesReady: false,
+  queue: [],
+  isQuirky: false
+};
+
 // ─── Detective game data ──────────────────────────────────────────────────────
 const DETECTIVE_SETS = [
   {
@@ -370,6 +376,20 @@ function pickVoice() {
   return voices.find(v => /en-PH|en-US|fil|tagalog/i.test(`${v.lang} ${v.name}`)) || voices[0] || null;
 }
 
+function initVoiceEngine() {
+  if (!("speechSynthesis" in window)) return;
+  const synth = window.speechSynthesis;
+  const update = () => {
+    voiceRuntime.voicesReady = synth.getVoices().length > 0;
+  };
+  update();
+  if (typeof synth.addEventListener === "function") {
+    synth.addEventListener("voiceschanged", update);
+  } else {
+    synth.onvoiceschanged = update;
+  }
+}
+
 function getScreenNarrationText() {
   if (appState.screen === "landing") {
     return `Welcome to Sir Jayson's Learning Domain. ${AUTHOR_BIO}`;
@@ -410,6 +430,53 @@ function clearVoiceSubtitle() {
   el.classList.remove("show");
 }
 
+function splitNarration(text) {
+  const cleaned = String(text || "").replace(/\s+/g, " ").trim();
+  if (!cleaned) return [];
+  const sentenceChunks = cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const out = [];
+  sentenceChunks.forEach(chunk => {
+    if (chunk.length <= 180) {
+      out.push(chunk);
+      return;
+    }
+    for (let i = 0; i < chunk.length; i += 170) {
+      out.push(chunk.slice(i, i + 170));
+    }
+  });
+  return out;
+}
+
+function speakQueueNext() {
+  if (!("speechSynthesis" in window)) return;
+  if (!voiceRuntime.queue.length) {
+    clearVoiceSubtitle();
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  const part = voiceRuntime.queue.shift();
+  const utter = new SpeechSynthesisUtterance(part);
+  const v = pickVoice();
+  if (v) utter.voice = v;
+  utter.rate = voiceRuntime.isQuirky ? 1.16 : voiceState.rate;
+  utter.pitch = voiceRuntime.isQuirky ? 1.35 : voiceState.pitch;
+  utter.volume = voiceState.volume;
+  utter.onstart = () => {
+    const lead = voiceRuntime.isQuirky ? "Sir Jayson (quirky): " : "Sir Jayson: ";
+    setVoiceSubtitle(lead + part);
+  };
+  utter.onend = () => {
+    if (voiceRuntime.queue.length) speakQueueNext();
+    else clearVoiceSubtitle();
+  };
+  utter.onerror = () => {
+    if (voiceRuntime.queue.length) speakQueueNext();
+    else clearVoiceSubtitle();
+  };
+  synth.speak(utter);
+}
+
 function speakText(text, mode = "normal") {
   if (!("speechSynthesis" in window)) {
     toast("Voice narration is not supported in this browser.");
@@ -417,25 +484,32 @@ function speakText(text, mode = "normal") {
   }
   const msg = (text || "").trim();
   if (!msg) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(msg);
-  const v = pickVoice();
-  if (v) utter.voice = v;
-  utter.rate = mode === "quirky" ? 1.16 : voiceState.rate;
-  utter.pitch = mode === "quirky" ? 1.35 : voiceState.pitch;
-  utter.volume = voiceState.volume;
-  utter.onstart = () => {
-    const lead = mode === "quirky" ? "Sir Jayson (quirky): " : "Sir Jayson: ";
-    setVoiceSubtitle(lead + msg);
-  };
-  utter.onend = clearVoiceSubtitle;
-  utter.onerror = clearVoiceSubtitle;
-  window.speechSynthesis.speak(utter);
+
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  voiceRuntime.isQuirky = mode === "quirky";
+  voiceRuntime.queue = splitNarration(msg);
+
+  // Some browsers load voices asynchronously after first user interaction.
+  if (!voiceRuntime.voicesReady && synth.getVoices().length === 0) {
+    setVoiceSubtitle("Loading voice engine...");
+    setTimeout(() => {
+      voiceRuntime.voicesReady = synth.getVoices().length > 0;
+      if (!voiceRuntime.voicesReady) {
+        setVoiceSubtitle("Using default browser voice...");
+      }
+      speakQueueNext();
+    }, 180);
+    return;
+  }
+
+  speakQueueNext();
 }
 
 function stopSpeaking() {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
+  voiceRuntime.queue = [];
   clearVoiceSubtitle();
 }
 
@@ -2009,6 +2083,7 @@ function shuffle(arr) {
 function fmtSigned(v) { return v >= 0 ? `+ ${v}` : `− ${Math.abs(v)}`; }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+initVoiceEngine();
 loadTheme();
 on("themeToggle", "click", toggleTheme);
 draw();
