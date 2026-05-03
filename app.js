@@ -177,7 +177,9 @@ const voiceState = {
 const voiceRuntime = {
   voicesReady: false,
   queue: [],
-  isQuirky: false
+  isQuirky: false,
+  unlocked: false,
+  pending: null
 };
 
 const coachRuntime = {
@@ -186,6 +188,7 @@ const coachRuntime = {
   corner: "right",
   dismissed: false,
   lastTypedToken: "",
+  lastSpokenToken: "",
   typingTimer: null,
   autoTimer: null,
   autoKey: ""
@@ -414,6 +417,36 @@ function initVoiceEngine() {
   } else {
     synth.onvoiceschanged = update;
   }
+}
+
+function flushPendingSpeech() {
+  if (!voiceRuntime.pending) return;
+  const { text, mode } = voiceRuntime.pending;
+  voiceRuntime.pending = null;
+  speakText(text, mode || "normal");
+}
+
+function bootstrapVoiceAutoplay() {
+  const unlock = () => {
+    voiceRuntime.unlocked = true;
+    flushPendingSpeech();
+  };
+  ["pointerdown", "touchstart", "keydown", "click"].forEach(evt => {
+    window.addEventListener(evt, unlock, { once: true, passive: true });
+  });
+}
+
+function requestAutoSpeech(text, mode = "normal") {
+  if (!("speechSynthesis" in window)) return;
+  const msg = (text || "").trim();
+  if (!msg) return;
+  if (voiceRuntime.unlocked) {
+    speakText(msg, mode);
+    return;
+  }
+  voiceRuntime.pending = { text: msg, mode };
+  // Best effort attempt before unlock; some browsers will allow this.
+  speakText(msg, mode);
 }
 
 function getScreenNarrationText() {
@@ -769,6 +802,11 @@ function wireTeacherCoach(ctx) {
   setCoachLine(current, token);
   updateCoachButtons(lines);
 
+  if (coachRuntime.lastSpokenToken !== token) {
+    requestAutoSpeech(current, "normal");
+    coachRuntime.lastSpokenToken = token;
+  }
+
   if (appState.screen !== "landing") clearCoachAuto();
 
   on("btnCoachNext", "click", () => {
@@ -778,7 +816,10 @@ function wireTeacherCoach(ctx) {
       coachRuntime.corner = coachRuntime.corner === "right" ? "left" : "right";
       applyCoachCornerClass();
       const nxt = lines[coachRuntime.step] || "";
-      setCoachLine(nxt, `${coachRuntime.key}_${coachRuntime.step}`);
+      const nextToken = `${coachRuntime.key}_${coachRuntime.step}`;
+      setCoachLine(nxt, nextToken);
+      requestAutoSpeech(nxt, "normal");
+      coachRuntime.lastSpokenToken = nextToken;
       updateCoachButtons(lines);
     });
   });
@@ -803,7 +844,6 @@ function wireTeacherCoach(ctx) {
     const autoKey = `${coachRuntime.key}_${coachRuntime.step}`;
     if (coachRuntime.autoKey !== autoKey) {
       coachRuntime.autoKey = autoKey;
-      speakText(current, "normal");
       const waitMs = Math.max(2200, Math.round(current.length * 78));
       clearCoachAuto();
       coachRuntime.autoKey = autoKey;
@@ -843,6 +883,7 @@ function syncTeacherCoach() {
     coachRuntime.corner = "right";
     coachRuntime.dismissed = false;
     coachRuntime.lastTypedToken = "";
+    coachRuntime.lastSpokenToken = "";
   }
 
   if (coachRuntime.dismissed) {
@@ -2348,6 +2389,7 @@ function fmtSigned(v) { return v >= 0 ? `+ ${v}` : `− ${Math.abs(v)}`; }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 initVoiceEngine();
+bootstrapVoiceAutoplay();
 loadTheme();
 on("themeToggle", "click", toggleTheme);
 draw();
