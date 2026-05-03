@@ -588,6 +588,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   padding: 10px;
   position: relative;
 }
+
+.teacher-coach-overlay {
+  position: fixed;
+  right: 18px;
+  top: 96px;
+  width: min(360px, calc(100vw - 30px));
+  z-index: 145;
+  pointer-events: none;
+}
+.teacher-coach-overlay .teacher-guide {
+  box-shadow: 0 16px 30px rgba(0,0,0,.26);
+  background: rgba(8, 24, 38, 0.84);
+  backdrop-filter: blur(8px);
+  border-color: rgba(160, 220, 255, .34);
+  pointer-events: auto;
+}
+.teacher-coach-overlay .teacher-bubble {
+  min-height: 96px;
+}
 .teacher-guide::before,
 .teacher-guide::after {
   position: absolute;
@@ -917,4 +936,13 @@ canvas {
     justify-content: center;
   }
   .teacher-bubble::before { display: none; }
+}
+
+@media (max-width: 1180px) {
+  .teacher-coach-overlay {
+    position: static;
+    width: min(1020px, calc(100% - 32px));
+    margin: 10px auto 0;
+    z-index: 30;
+  }
 }

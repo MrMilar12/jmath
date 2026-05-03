@@ -359,6 +359,7 @@ function render(html) {
   applyPageMotion();
   wireDataGo();
   wireVoiceDock();
+  syncTeacherCoach();
 }
 
 function applyPageMotion() {
@@ -567,23 +568,23 @@ function draw() {
 
 function moduleTeacherLine(topicId, phase) {
   const lines = {
-    "1_1": "Notice how one outlier can trick your mean. Let's investigate the data carefully.",
-    "1_2": "Mean, median, and mode each tell a different story. Pick based on the situation.",
-    "1_3": "Compute first, then interpret. Numbers become meaningful when connected to context.",
-    "1_4": "Read each question like a detective. Look for clues before choosing a measure.",
-    "2_1": "Different input ranges need different rules. That is the heart of piecewise functions.",
-    "2_2": "Always check the condition first, then apply the matching formula.",
-    "2_3": "Use the graph to verify your computed outputs and catch mistakes quickly.",
-    "2_4": "In piecewise problems, interval selection is half the solution.",
-    "3_1": "A parabola's turning point gives the maximum or minimum. Focus on the vertex.",
-    "3_2": "From f(x)=ax^2+bx+c, coefficient a tells the opening direction immediately.",
-    "3_3": "Move the sliders and watch how a, b, and c reshape the graph in real time.",
-    "3_4": "Use vertex and graph behavior together to answer quadratic questions confidently."
+    "1_1": "Notice how one outlier can trick your mean. In this game, compare answers before trusting the first result.",
+    "1_2": "While we discuss, ask: is this dataset balanced or skewed? That decides if mean or median is better.",
+    "1_3": "As you solve the activity, say your interpretation out loud: what does each value tell about the class?",
+    "1_4": "During assessment, read like a detective. Look for outliers and keywords before selecting your answer.",
+    "2_1": "In this motivation game, one story has different price rules. That is exactly why piecewise functions exist.",
+    "2_2": "Discussion tip: condition first, formula second. Always identify the interval before computing.",
+    "2_3": "In the game, move the input and predict the output before checking the graph. That builds real understanding.",
+    "2_4": "Assessment strategy: locate the interval quickly, then substitute carefully. Most mistakes happen in rule selection.",
+    "3_1": "Watch how the ball reaches a highest point. That turning point is the vertex we will analyze.",
+    "3_2": "During discussion, connect coefficients to graph behavior: a controls opening, b shifts the vertex.",
+    "3_3": "Use sliders like an experiment. Change one value at a time and explain what changed in the parabola.",
+    "3_4": "For quiz items, combine formula and graph intuition. Verify if your computed vertex matches the shape."
   };
   return lines[`${topicId}_${phase}`] || "Keep going. Understand the concept, then apply it step by step.";
 }
 
-function teacherGuideCard(topicId, phase) {
+function teacherGuideCard(topicId, phase, label = "Now discussing") {
   return `
     <div class="teacher-guide">
       <div class="teacher-css-anim mini" aria-hidden="true">
@@ -610,11 +611,48 @@ function teacherGuideCard(topicId, phase) {
         </div>
       </div>
       <div class="teacher-bubble">
-        <strong>Sir Jayson says:</strong>
+        <strong>Sir Jayson • ${esc(label)}</strong>
         <p>${esc(moduleTeacherLine(topicId, phase))}</p>
       </div>
     </div>
   `;
+}
+
+function getCoachContext() {
+  if (appState.screen === "modules") {
+    return {
+      topicId: appState.topicId || 1,
+      phase: 1,
+      label: "Topic orientation"
+    };
+  }
+  if (appState.screen === "topic") {
+    const labels = ["Motivation", "Discussion", "Activity", "Assessment"];
+    return {
+      topicId: appState.topicId,
+      phase: appState.topicPhase,
+      label: labels[appState.topicPhase - 1] || "Guidance"
+    };
+  }
+  return null;
+}
+
+function syncTeacherCoach() {
+  const ctx = getCoachContext();
+  const old = byId("teacherCoachOverlay");
+  if (!ctx) {
+    if (old) old.remove();
+    return;
+  }
+
+  const html = `
+    <aside id="teacherCoachOverlay" class="teacher-coach-overlay motion-item" style="--motion-delay:120ms">
+      ${teacherGuideCard(ctx.topicId, ctx.phase, ctx.label)}
+    </aside>
+  `;
+
+  if (old) old.outerHTML = html;
+  else document.body.insertAdjacentHTML("beforeend", html);
 }
 
 // ─── XP bar panel ─────────────────────────────────────────────────────────────
@@ -790,7 +828,6 @@ function renderModules() {
     <div class="modules-page">
       <h2>📚 Topics</h2>
       <p class="subtitle">Each topic follows 4 phases: Motivation → Discussion → Activity → Assessment</p>
-      ${teacherGuideCard(appState.topicId || 1, 1)}
       <div class="topic-list" id="topicList">${cards}</div>
       <div class="btn-row spread" style="margin-top:8px">
         <button data-go="preface" class="secondary">← Preface</button>
@@ -844,7 +881,6 @@ function topicHeader(t, phase) {
         ${phaseBar(t.id, phase, t.phases)}
       </div>
     </div>
-    ${teacherGuideCard(t.id, phase)}
   `;
 }
 
