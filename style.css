@@ -215,6 +215,21 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   gap: 16px;
   padding: 16px;
 }
+.teacher-stack {
+  width: min(320px, 100%);
+  display: grid;
+  gap: 12px;
+}
+.tenor-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--panel-b);
+  background: rgba(255,255,255,.05);
+  min-height: 220px;
+}
+.tenor-wrap .tenor-gif-embed {
+  width: 100%;
+}
 .teacher-gif {
   max-width: 280px;
   border-radius: 16px;
@@ -617,6 +632,16 @@ canvas {
   z-index: 100;
 }
 
+.voice-dock {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.voice-dock button {
+  font-size: .82rem;
+  padding: 8px 12px;
+}
+
 /* ─── Confetti & Toast ─────────────────────────────────────── */
 #confettiCanvas {
   position: fixed; inset: 0;
@@ -644,4 +669,5 @@ canvas {
   .xp-panel { grid-template-columns: 1fr 1fr; }
   .xp-panel .xp-bar-outer { grid-column: 1 / -1; }
   .phase-bar .phase-step { min-width: 44px; font-size: .65rem; }
+  .voice-dock { justify-content: center; }
 }

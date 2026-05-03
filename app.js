@@ -168,6 +168,12 @@ const appState = {
   detective: { set: null, answered: false }
 };
 
+const voiceState = {
+  rate: 0.95,
+  pitch: 1,
+  volume: 1
+};
+
 // ─── Detective game data ──────────────────────────────────────────────────────
 const DETECTIVE_SETS = [
   {
@@ -340,11 +346,86 @@ function esc(v) {
 
 function render(html) {
   const el = appEl();
-  el.innerHTML = html;
+  el.innerHTML = `${html}${voiceDockHtml()}`;
   el.classList.remove("screen-enter");
   void el.offsetWidth;
   el.classList.add("screen-enter");
   wireDataGo();
+  wireVoiceDock();
+}
+
+function voiceDockHtml() {
+  return `
+    <div class="voice-dock">
+      <button id="btnVoiceRead" class="secondary" type="button">🔊 Read Aloud</button>
+      <button id="btnVoiceStop" class="secondary" type="button">⏹ Stop</button>
+    </div>
+  `;
+}
+
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find(v => /en-PH|en-US|fil|tagalog/i.test(`${v.lang} ${v.name}`)) || voices[0] || null;
+}
+
+function getScreenNarrationText() {
+  if (appState.screen === "landing") {
+    return `Welcome to Sir Jayson's Learning Domain. ${AUTHOR_BIO}`;
+  }
+  if (appState.screen === "preface") {
+    return `General Mathematics preface. ${GM_PREFACE} Core competencies include: ${COMPETENCIES.join(", ")}.`;
+  }
+  if (appState.screen === "modules") {
+    return "Choose a topic. Each topic has four phases: Motivation game, Discussion, Activity, and Assessment quiz.";
+  }
+  if (appState.screen === "topic") {
+    const topic = TOPICS.find(t => t.id === appState.topicId);
+    const phaseNames = ["Motivation", "Discussion", "Activity", "Assessment"];
+    const phaseName = phaseNames[appState.topicPhase - 1] || "Learning";
+    return `You are in ${topic ? topic.title : "General Mathematics"}. Current phase: ${phaseName}.`;
+  }
+  if (appState.screen === "analytics") {
+    return "This is your analytics page showing interpretation, selection, and problem solving performance, along with your completion and badges.";
+  }
+  return "General Mathematics interactive module.";
+}
+
+function speakText(text) {
+  if (!("speechSynthesis" in window)) {
+    toast("Voice narration is not supported in this browser.");
+    return;
+  }
+  const msg = (text || "").trim();
+  if (!msg) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(msg);
+  const v = pickVoice();
+  if (v) utter.voice = v;
+  utter.rate = voiceState.rate;
+  utter.pitch = voiceState.pitch;
+  utter.volume = voiceState.volume;
+  window.speechSynthesis.speak(utter);
+}
+
+function stopSpeaking() {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+}
+
+function wireVoiceDock() {
+  on("btnVoiceRead", "click", () => speakText(getScreenNarrationText()));
+  on("btnVoiceStop", "click", stopSpeaking);
+}
+
+function refreshTenorEmbed() {
+  const old = byId("tenorEmbedScript");
+  if (old) old.remove();
+  const s = document.createElement("script");
+  s.id = "tenorEmbedScript";
+  s.src = "https://tenor.com/embed.js";
+  s.async = true;
+  document.body.appendChild(s);
 }
 
 function wireDataGo() {
@@ -387,36 +468,42 @@ function renderLanding() {
   render(`
     <div class="landing-page">
       <div class="teacher-stage">
-        <div id="teacherCss" class="teacher-css-anim">
-          <div class="chalkboard-anim">
-            <p class="ck c1">f(x) = ax² + bx + c</p>
-            <p class="ck c2">μ = Σx ÷ n</p>
-            <p class="ck c3">σ = √(Σ(x−μ)²÷n)</p>
+        <div class="teacher-stack">
+          <div class="tenor-wrap">
+            <div class="tenor-gif-embed"
+                 data-postid="12908703"
+                 data-share-method="host"
+                 data-aspect-ratio="1"
+                 data-width="100%">
+              <a href="https://tenor.com/view/teacher-school-teaching-showing-gif-12908703">Teacher School GIF</a>
+            </div>
           </div>
-          <div class="sir-figure">
-            <div class="sir-head">
-              <div class="sir-hair"></div>
-              <div class="sir-eyes"><div class="sir-eye"></div><div class="sir-eye"></div></div>
-              <div class="sir-smile"></div>
+          <div id="teacherCss" class="teacher-css-anim">
+            <div class="chalkboard-anim">
+              <p class="ck c1">f(x) = ax² + bx + c</p>
+              <p class="ck c2">μ = Σx ÷ n</p>
+              <p class="ck c3">σ = √(Σ(x−μ)²÷n)</p>
             </div>
-            <div class="sir-torso-row">
-              <div class="sir-arm left-arm"></div>
-              <div class="sir-body">
-                <div class="sir-tie"></div>
+            <div class="sir-figure">
+              <div class="sir-head">
+                <div class="sir-hair"></div>
+                <div class="sir-eyes"><div class="sir-eye"></div><div class="sir-eye"></div></div>
+                <div class="sir-smile"></div>
               </div>
-              <div class="sir-arm right-arm"></div>
-            </div>
-            <div class="sir-legs">
-              <div class="sir-leg"></div>
-              <div class="sir-leg"></div>
+              <div class="sir-torso-row">
+                <div class="sir-arm left-arm"></div>
+                <div class="sir-body">
+                  <div class="sir-tie"></div>
+                </div>
+                <div class="sir-arm right-arm"></div>
+              </div>
+              <div class="sir-legs">
+                <div class="sir-leg"></div>
+                <div class="sir-leg"></div>
+              </div>
             </div>
           </div>
         </div>
-        <img id="teacherGif"
-          src="assets/sir-jayson.gif"
-          alt="Sir Jayson"
-          class="teacher-gif"
-          style="display:none" />
       </div>
 
       <div class="landing-content">
@@ -435,11 +522,7 @@ function renderLanding() {
     </div>
   `);
 
-  /* GIF fallback: show CSS anim by default; swap if GIF loads */
-  const gif = byId("teacherGif");
-  const css = byId("teacherCss");
-  gif.addEventListener("load", () => { css.style.display = "none"; gif.style.display = "block"; });
-  gif.addEventListener("error", () => { gif.style.display = "none"; css.style.display = "flex"; });
+  refreshTenorEmbed();
 
   on("btnStart", "click", () => {
     swalPop({
