@@ -186,7 +186,9 @@ const coachRuntime = {
   corner: "right",
   dismissed: false,
   lastTypedToken: "",
-  typingTimer: null
+  typingTimer: null,
+  autoTimer: null,
+  autoKey: ""
 };
 
 // ─── Detective game data ──────────────────────────────────────────────────────
@@ -692,6 +694,14 @@ function clearCoachTyping() {
   }
 }
 
+function clearCoachAuto() {
+  if (coachRuntime.autoTimer) {
+    clearTimeout(coachRuntime.autoTimer);
+    coachRuntime.autoTimer = null;
+  }
+  coachRuntime.autoKey = "";
+}
+
 function typeCoachLine(line, token) {
   const host = byId("coachTypedText");
   if (!host) return;
@@ -759,6 +769,8 @@ function wireTeacherCoach(ctx) {
   setCoachLine(current, token);
   updateCoachButtons(lines);
 
+  if (appState.screen !== "landing") clearCoachAuto();
+
   on("btnCoachNext", "click", () => {
     if (coachRuntime.step >= lines.length - 1) return;
     fadeCoachBubble(() => {
@@ -777,9 +789,41 @@ function wireTeacherCoach(ctx) {
       const overlay = byId("teacherCoachOverlay");
       if (overlay) overlay.remove();
       document.body.classList.remove("has-coach");
+      clearCoachAuto();
       clearCoachTyping();
     });
   });
+
+  if (appState.screen === "landing") {
+    const nextBtn = byId("btnCoachNext");
+    const okBtn = byId("btnCoachOk");
+    if (nextBtn) nextBtn.style.display = "none";
+    if (okBtn) okBtn.textContent = coachRuntime.step >= lines.length - 1 ? "OK" : "Skip Intro";
+
+    const autoKey = `${coachRuntime.key}_${coachRuntime.step}`;
+    if (coachRuntime.autoKey !== autoKey) {
+      coachRuntime.autoKey = autoKey;
+      speakText(current, "normal");
+      const waitMs = Math.max(2200, Math.round(current.length * 78));
+      clearCoachAuto();
+      coachRuntime.autoKey = autoKey;
+      coachRuntime.autoTimer = setTimeout(() => {
+        if (appState.screen !== "landing" || coachRuntime.dismissed) return;
+        if (coachRuntime.step < lines.length - 1) {
+          fadeCoachBubble(() => {
+            coachRuntime.step += 1;
+            coachRuntime.corner = coachRuntime.corner === "right" ? "left" : "right";
+            applyCoachCornerClass();
+            wireTeacherCoach(ctx);
+          });
+        } else {
+          updateCoachButtons(lines);
+          const ok = byId("btnCoachOk");
+          if (ok) ok.textContent = "OK";
+        }
+      }, waitMs);
+    }
+  }
 }
 
 function syncTeacherCoach() {
@@ -788,6 +832,7 @@ function syncTeacherCoach() {
   if (!ctx) {
     if (old) old.remove();
     document.body.classList.remove("has-coach");
+    clearCoachAuto();
     return;
   }
 
@@ -803,6 +848,7 @@ function syncTeacherCoach() {
   if (coachRuntime.dismissed) {
     if (old) old.remove();
     document.body.classList.remove("has-coach");
+    clearCoachAuto();
     return;
   }
 
