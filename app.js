@@ -894,13 +894,16 @@ function renderLanding() {
               <a href="https://tenor.com/view/teacher-school-teaching-showing-gif-12908703">Teacher School GIF</a>
             </div>
           </div>
-          <div id="teacherCss" class="teacher-css-anim">
-            <div class="chalkboard-anim">
-              <p class="ck c1">f(x) = ax² + bx + c</p>
-              <p class="ck c2">μ = Σx ÷ n</p>
-              <p class="ck c3">σ = √(Σ(x−μ)²÷n)</p>
+          <div id="teacherCss" class="teacher-css-anim landing-teacher">
+            <div class="chalkboard-anim landing-board">
+              <div class="board-doodles" aria-hidden="true">
+                <span class="bd d1"></span>
+                <span class="bd d2"></span>
+                <span class="bd d3"></span>
+                <span class="bd d4"></span>
+              </div>
             </div>
-            <div class="sir-figure">
+            <div class="sir-figure landing-sir">
               <div class="sir-head">
                 <div class="sir-hair"></div>
                 <div class="sir-brow left"></div>
