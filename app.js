@@ -649,24 +649,24 @@ function moduleTeacherLine(topicId, phase) {
 function moduleTeacherDialog(topicId, phase, screen) {
   if (screen === "landing") {
     return [
-      "Welcome, Math Explorer. I will guide you like a game coach while you learn.",
-      "Click Next and watch this dialogue move, just like a live talking character.",
-      "When you are ready, press Start Learning and we begin your first module adventure."
+      "Welcome, Math Explorer. I am here to guide you step by step as you learn.",
+      "Take your time, enjoy the activities, and trust your progress one lesson at a time.",
+      "When you are ready, press Start Learning and begin your General Mathematics adventure with confidence."
     ];
   }
 
   if (screen === "modules") {
     return [
-      "Pick one topic first. We will go step by step so you do not feel lost.",
+      "Choose one topic first. We will move step by step so learning stays clear and manageable.",
       "Each topic has 4 parts: Motivation, Discussion, Activity, and Assessment.",
-      "Start with the topic you find most interesting, then complete all phases."
+      "Stay curious, do your best in each phase, and celebrate every improvement you make."
     ];
   }
 
   return [
     moduleTeacherLine(topicId, phase),
-    "Watch the clues inside the game and examples. They are part of the lesson discussion.",
-    "Click Next to continue the guide, then apply the tip immediately in this phase."
+    "Watch the clues inside the game and examples. They are important parts of our lesson discussion.",
+    "Keep going. You are doing great. Apply this tip now, and build your confidence one step at a time."
   ];
 }
 
