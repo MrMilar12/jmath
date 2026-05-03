@@ -583,10 +583,21 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
+function apiUrl(path) {
+  // Map Node-style route strings to PHP file paths
+  const m = path.match(/^\/api\/children\/(\d+)\/(\w+)$/);
+  if (m) return `/api/${m[2]}.php?child_id=${m[1]}`;
+  if (path === "/api/children")  return "/api/children.php";
+  if (path === "/api/register")  return "/api/register.php";
+  if (path === "/api/login")     return "/api/login.php";
+  if (path === "/api/me")        return "/api/me.php";
+  return path;
+}
+
 async function api(path, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
   if (authState.token) headers.Authorization = `Bearer ${authState.token}`;
-  const res = await fetch(path, { ...opts, headers });
+  const res = await fetch(apiUrl(path), { ...opts, headers });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || "Request failed");
   return body;

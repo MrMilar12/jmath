@@ -1,13 +1,12 @@
-"use strict";
-
-const fs = require("fs");
-const path = require("path");
-const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
-const PORT = process.env.PORT || 3000;
+// ⚠️  This file is no longer used.
+// The backend has been replaced by PHP + MySQL.
+//
+// API files:  api/register.php  api/login.php  api/me.php
+//             api/children.php  api/progress.php  api/results.php
+// DB schema:  setup.sql
+//
+// To run the app, use XAMPP (Apache + MySQL) — no Node.js required.
+// See README.md for full setup instructions.
 const JWT_SECRET = process.env.JWT_SECRET || "jmath-dev-secret-change-me";
 
 const dataDir = path.join(__dirname, "data");

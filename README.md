@@ -21,10 +21,11 @@ The system is built to:
 
 - Web app with frontend and backend
 - Frontend: HTML + CSS + JavaScript
-- Backend: Node.js + Express + SQLite
+- Backend: PHP (no framework required)
+- Database: MySQL (via XAMPP / phpMyAdmin)
 - Authentication: user account (register/login)
 - Multi-child profiles per user
-- Child-specific progress + assessment records in SQLite
+- Child-specific progress + assessment records in MySQL
 
 ## Competency-Based Modules
 
@@ -83,12 +84,13 @@ The system is built to:
 
 ## Data Storage
 
-### SQLite Database
+### MySQL Database
 
 - User accounts (`users` table)
 - Child profiles (`children` table)
 - Per-child progress snapshots (`child_progress` table)
 - Per-assessment records (`assessment_results` table)
+- Schema: see `setup.sql`
 
 ### Browser Local Cache
 
@@ -113,14 +115,14 @@ The system is built to:
 
 ## How to Run
 
-1. Install dependencies:
-   - `npm install`
-2. Start the app server:
-   - `npm start`
-3. Open `http://localhost:3000` in your browser.
-4. Register a user account or login.
-5. Add/select a child profile.
-6. Start learning; quiz and competency statistics are saved to the selected child profile.
+1. Install [XAMPP](https://www.apachefriends.org/) and start **Apache** and **MySQL** from the XAMPP Control Panel.
+2. Open **phpMyAdmin** (`http://localhost/phpmyadmin`), click the **SQL** tab, paste the contents of `setup.sql`, and click **Go** to create the database and tables.
+3. Copy the entire project folder into `C:\xampp\htdocs\jmath\`.
+4. *(Optional)* Open `api/config.php` and update `DB_USER` / `DB_PASS` if your MySQL credentials differ from the default (`root` / blank).
+5. Visit `http://localhost/jmath/` in your browser.
+6. Register a user account, add a child profile, and start learning.
+
+> `server.js` and `package.json` are no longer used — the backend is now pure PHP handled by files in the `api/` folder.
 
 ## Suggested Next Development Phases
 
