@@ -180,6 +180,14 @@ const voiceRuntime = {
   isQuirky: false
 };
 
+const coachRuntime = {
+  key: "",
+  step: 0,
+  dismissed: false,
+  lastTypedToken: "",
+  typingTimer: null
+};
+
 // ─── Detective game data ──────────────────────────────────────────────────────
 const DETECTIVE_SETS = [
   {
@@ -584,6 +592,22 @@ function moduleTeacherLine(topicId, phase) {
   return lines[`${topicId}_${phase}`] || "Keep going. Understand the concept, then apply it step by step.";
 }
 
+function moduleTeacherDialog(topicId, phase, screen) {
+  if (screen === "modules") {
+    return [
+      "Pick one topic first. We will go step by step so you do not feel lost.",
+      "Each topic has 4 parts: Motivation, Discussion, Activity, and Assessment.",
+      "Start with the topic you find most interesting, then complete all phases."
+    ];
+  }
+
+  return [
+    moduleTeacherLine(topicId, phase),
+    "Watch the clues inside the game and examples. They are part of the lesson discussion.",
+    "Click Next to continue the guide, then apply the tip immediately in this phase."
+  ];
+}
+
 function teacherGuideCard(topicId, phase, label = "Now discussing") {
   return `
     <div class="teacher-guide">
@@ -612,7 +636,11 @@ function teacherGuideCard(topicId, phase, label = "Now discussing") {
       </div>
       <div class="teacher-bubble">
         <strong>Sir Jayson • ${esc(label)}</strong>
-        <p>${esc(moduleTeacherLine(topicId, phase))}</p>
+        <p id="coachTypedText" class="coach-typed"></p>
+        <div class="coach-controls">
+          <button id="btnCoachNext" type="button" class="secondary">Next →</button>
+          <button id="btnCoachOk" type="button" class="secondary">OK</button>
+        </div>
       </div>
     </div>
   `;
@@ -637,10 +665,115 @@ function getCoachContext() {
   return null;
 }
 
+function coachContextKey(ctx) {
+  return `${appState.screen}_${ctx.topicId}_${ctx.phase}`;
+}
+
+function clearCoachTyping() {
+  if (coachRuntime.typingTimer) {
+    clearInterval(coachRuntime.typingTimer);
+    coachRuntime.typingTimer = null;
+  }
+}
+
+function typeCoachLine(line, token) {
+  const host = byId("coachTypedText");
+  if (!host) return;
+  clearCoachTyping();
+  host.textContent = "";
+  host.classList.add("typing");
+  let i = 0;
+  coachRuntime.typingTimer = setInterval(() => {
+    i += 1;
+    host.textContent = line.slice(0, i);
+    if (i >= line.length) {
+      clearCoachTyping();
+      host.classList.remove("typing");
+      coachRuntime.lastTypedToken = token;
+    }
+  }, 16);
+}
+
+function setCoachLine(line, token) {
+  const host = byId("coachTypedText");
+  if (!host) return;
+  if (coachRuntime.lastTypedToken === token) {
+    clearCoachTyping();
+    host.classList.remove("typing");
+    host.textContent = line;
+    return;
+  }
+  typeCoachLine(line, token);
+}
+
+function updateCoachButtons(lines) {
+  const next = byId("btnCoachNext");
+  const ok = byId("btnCoachOk");
+  if (!next || !ok) return;
+  const last = coachRuntime.step >= lines.length - 1;
+  next.style.display = last ? "none" : "inline-flex";
+  ok.textContent = last ? "OK" : "Skip";
+}
+
+function fadeCoachBubble(after) {
+  const bubble = document.querySelector("#teacherCoachOverlay .teacher-bubble");
+  if (!bubble) {
+    after();
+    return;
+  }
+  bubble.classList.add("coach-fade-out");
+  setTimeout(() => {
+    bubble.classList.remove("coach-fade-out");
+    after();
+  }, 220);
+}
+
+function wireTeacherCoach(ctx) {
+  const lines = moduleTeacherDialog(ctx.topicId, ctx.phase, appState.screen);
+  const current = lines[Math.min(coachRuntime.step, lines.length - 1)] || "";
+  const token = `${coachRuntime.key}_${coachRuntime.step}`;
+  setCoachLine(current, token);
+  updateCoachButtons(lines);
+
+  on("btnCoachNext", "click", () => {
+    if (coachRuntime.step >= lines.length - 1) return;
+    fadeCoachBubble(() => {
+      coachRuntime.step += 1;
+      const nxt = lines[coachRuntime.step] || "";
+      setCoachLine(nxt, `${coachRuntime.key}_${coachRuntime.step}`);
+      updateCoachButtons(lines);
+    });
+  });
+
+  on("btnCoachOk", "click", () => {
+    fadeCoachBubble(() => {
+      coachRuntime.dismissed = true;
+      const overlay = byId("teacherCoachOverlay");
+      if (overlay) overlay.remove();
+      document.body.classList.remove("has-coach");
+      clearCoachTyping();
+    });
+  });
+}
+
 function syncTeacherCoach() {
   const ctx = getCoachContext();
   const old = byId("teacherCoachOverlay");
   if (!ctx) {
+    if (old) old.remove();
+    document.body.classList.remove("has-coach");
+    return;
+  }
+
+  const key = coachContextKey(ctx);
+  if (coachRuntime.key !== key) {
+    coachRuntime.key = key;
+    coachRuntime.step = 0;
+    coachRuntime.dismissed = false;
+    coachRuntime.lastTypedToken = "";
+  }
+
+  if (coachRuntime.dismissed) {
     if (old) old.remove();
     document.body.classList.remove("has-coach");
     return;
@@ -656,6 +789,8 @@ function syncTeacherCoach() {
 
   if (old) old.outerHTML = html;
   else document.body.insertAdjacentHTML("beforeend", html);
+
+  wireTeacherCoach(ctx);
 }
 
 // ─── XP bar panel ─────────────────────────────────────────────────────────────

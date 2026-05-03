@@ -655,6 +655,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   to { transform: translateY(-2px); }
 }
 
+.coach-typed {
+  min-height: 64px;
+  line-height: 1.55;
+}
+.coach-typed.typing::after {
+  content: "|";
+  margin-left: 2px;
+  color: var(--warn);
+  animation: coachCaret .7s steps(1) infinite;
+}
+@keyframes coachCaret {
+  50% { opacity: 0; }
+}
+
+.coach-controls {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.coach-controls button {
+  font-size: .78rem;
+  padding: 6px 10px;
+}
+
+.teacher-bubble.coach-fade-out {
+  animation: coachFadeOut .22s ease forwards;
+}
+@keyframes coachFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(8px); }
+}
+
 .phase-bar {
   display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
 }
