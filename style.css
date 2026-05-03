@@ -214,11 +214,31 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   align-items: flex-end;
   gap: 16px;
   padding: 16px;
+  position: relative;
 }
 .teacher-stack {
   width: min(320px, 100%);
   display: grid;
   gap: 12px;
+  position: relative;
+}
+.teacher-stack::before,
+.teacher-stack::after {
+  position: absolute;
+  font-size: 1.35rem;
+  animation: floatProp 3.2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.teacher-stack::before {
+  content: "⚗️";
+  top: -10px;
+  left: -12px;
+}
+.teacher-stack::after {
+  content: "🧪";
+  top: 8px;
+  right: -12px;
+  animation-delay: .9s;
 }
 .tenor-wrap {
   border-radius: 16px;
@@ -241,6 +261,20 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   display: flex;
   align-items: flex-end;
   gap: 14px;
+  position: relative;
+}
+.teacher-css-anim::before,
+.teacher-css-anim::after {
+  position: absolute;
+  font-size: 1.2rem;
+  animation: floatProp 2.6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.teacher-css-anim::before { content: "📐"; right: 8px; top: -8px; }
+.teacher-css-anim::after { content: "➗"; left: 6px; bottom: 4px; animation-delay: .7s; }
+@keyframes floatProp {
+  from { transform: translateY(0) rotate(-4deg); }
+  to { transform: translateY(-8px) rotate(6deg); }
 }
 
 /* Chalkboard */
@@ -273,30 +307,72 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 /* Figure parts */
 .sir-figure { display: flex; flex-direction: column; align-items: center; }
 .sir-head {
-  width: 44px; height: 44px;
+  width: 52px; height: 52px;
   background: #f5c29a;
   border-radius: 50%;
   border: 2px solid #e09060;
   position: relative;
-  animation: headBob 2.8s ease-in-out infinite;
+  animation: headBob 1.8s ease-in-out infinite;
 }
-@keyframes headBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes headBob {
+  0%,100% { transform: translateY(0) rotate(-1deg); }
+  45% { transform: translateY(-6px) rotate(2deg); }
+  75% { transform: translateY(-2px) rotate(-2deg); }
+}
 .sir-hair {
   position: absolute;
-  top: -3px; left: -1px;
-  width: 46px; height: 18px;
+  top: -6px; left: -4px;
+  width: 58px; height: 22px;
   background: #3d2b1f;
-  border-radius: 22px 22px 0 0;
+  clip-path: polygon(0 100%, 8% 28%, 18% 68%, 30% 20%, 42% 72%, 56% 18%, 68% 66%, 80% 22%, 92% 72%, 100% 100%);
 }
-.sir-eyes { position: absolute; top: 16px; width: 100%; display: flex; justify-content: space-around; padding: 0 10px; }
-.sir-eye { width: 5px; height: 5px; background: #2a1a0a; border-radius: 50%; }
+.sir-brow {
+  position: absolute;
+  width: 11px;
+  height: 3px;
+  background: #372314;
+  top: 17px;
+  border-radius: 3px;
+}
+.sir-brow.left { left: 11px; transform: rotate(14deg); }
+.sir-brow.right { right: 11px; transform: rotate(-14deg); }
+.sir-glasses {
+  position: absolute;
+  left: 8px;
+  top: 19px;
+  width: 36px;
+  height: 10px;
+  border-top: 2px solid rgba(20,20,20,.7);
+  border-bottom: 2px solid rgba(20,20,20,.2);
+  border-radius: 8px;
+}
+.sir-eyes { position: absolute; top: 22px; width: 100%; display: flex; justify-content: space-around; padding: 0 12px; }
+.sir-eye {
+  width: 6px;
+  height: 6px;
+  background: #2a1a0a;
+  border-radius: 50%;
+  animation: blink 4s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 43%, 47%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(0.2); }
+}
 .sir-smile {
   position: absolute;
-  bottom: 8px; left: 50%; transform: translateX(-50%);
-  width: 16px; height: 7px;
-  border: 2px solid #b06040;
-  border-radius: 0 0 10px 10px;
-  border-top: none;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 6px;
+  background: #8f2c2c;
+  border: 2px solid #6f1f1f;
+  border-radius: 4px 4px 8px 8px;
+  animation: mouthTalk .24s ease-in-out infinite alternate;
+}
+@keyframes mouthTalk {
+  from { height: 5px; }
+  to { height: 10px; }
 }
 .sir-torso-row {
   display: flex; align-items: flex-start; margin-top: 2px;
@@ -310,7 +386,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .sir-arm.left-arm {
   transform: rotate(-45deg);
   transform-origin: top right;
-  animation: armSwing 2.8s ease-in-out infinite;
+  animation: armSwing 1.9s ease-in-out infinite;
 }
 @keyframes armSwing {
   0%,100% { transform: rotate(-45deg); }
@@ -459,7 +535,17 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   border-radius: 14px;
   background: rgba(255,255,255,.06);
   padding: 10px;
+  position: relative;
 }
+.teacher-guide::before,
+.teacher-guide::after {
+  position: absolute;
+  font-size: 1rem;
+  animation: floatProp 2.4s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.teacher-guide::before { content: "⚙️"; right: 10px; top: 6px; }
+.teacher-guide::after { content: "📎"; right: 34px; bottom: 8px; animation-delay: .8s; }
 
 .teacher-css-anim.mini {
   gap: 8px;
@@ -476,11 +562,29 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .teacher-bubble {
   background: rgba(38,208,206,.08);
   border-left: 3px solid var(--accent);
-  border-radius: 0 10px 10px 0;
+  border-radius: 12px;
   padding: 10px 12px;
   line-height: 1.5;
+  position: relative;
+  animation: bubblePop 2.2s ease-in-out infinite alternate;
+}
+.teacher-bubble::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 16px;
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+  background: rgba(38,208,206,.08);
+  border-left: 3px solid var(--accent);
+  border-bottom: 3px solid transparent;
 }
 .teacher-bubble strong { color: var(--warn); }
+@keyframes bubblePop {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
+}
 
 .phase-bar {
   display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
@@ -674,6 +778,29 @@ canvas {
   padding: 8px 12px;
 }
 
+.voice-subtitle {
+  position: fixed;
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%) translateY(12px);
+  opacity: 0;
+  max-width: min(92vw, 860px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.78);
+  border: 1px solid var(--panel-b);
+  color: #fff;
+  font-size: .9rem;
+  line-height: 1.4;
+  text-align: center;
+  z-index: 170;
+  transition: opacity .2s, transform .2s;
+}
+.voice-subtitle.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ─── Confetti & Toast ─────────────────────────────────────── */
 #confettiCanvas {
   position: fixed; inset: 0;
@@ -709,4 +836,5 @@ canvas {
     margin-right: 0;
     justify-content: center;
   }
+  .teacher-bubble::before { display: none; }
 }

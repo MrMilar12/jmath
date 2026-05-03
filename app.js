@@ -358,6 +358,7 @@ function voiceDockHtml() {
   return `
     <div class="voice-dock">
       <button id="btnVoiceRead" class="secondary" type="button">🔊 Read Aloud</button>
+      <button id="btnVoiceQuirky" class="secondary" type="button">🤪 Quirky Voice</button>
       <button id="btnVoiceStop" class="secondary" type="button">⏹ Stop</button>
     </div>
   `;
@@ -391,7 +392,25 @@ function getScreenNarrationText() {
   return "General Mathematics interactive module.";
 }
 
-function speakText(text) {
+function setVoiceSubtitle(text) {
+  let el = byId("voiceSubtitle");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "voiceSubtitle";
+    el.className = "voice-subtitle";
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.classList.add("show");
+}
+
+function clearVoiceSubtitle() {
+  const el = byId("voiceSubtitle");
+  if (!el) return;
+  el.classList.remove("show");
+}
+
+function speakText(text, mode = "normal") {
   if (!("speechSynthesis" in window)) {
     toast("Voice narration is not supported in this browser.");
     return;
@@ -402,19 +421,27 @@ function speakText(text) {
   const utter = new SpeechSynthesisUtterance(msg);
   const v = pickVoice();
   if (v) utter.voice = v;
-  utter.rate = voiceState.rate;
-  utter.pitch = voiceState.pitch;
+  utter.rate = mode === "quirky" ? 1.16 : voiceState.rate;
+  utter.pitch = mode === "quirky" ? 1.35 : voiceState.pitch;
   utter.volume = voiceState.volume;
+  utter.onstart = () => {
+    const lead = mode === "quirky" ? "Sir Jayson (quirky): " : "Sir Jayson: ";
+    setVoiceSubtitle(lead + msg);
+  };
+  utter.onend = clearVoiceSubtitle;
+  utter.onerror = clearVoiceSubtitle;
   window.speechSynthesis.speak(utter);
 }
 
 function stopSpeaking() {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
+  clearVoiceSubtitle();
 }
 
 function wireVoiceDock() {
   on("btnVoiceRead", "click", () => speakText(getScreenNarrationText()));
+  on("btnVoiceQuirky", "click", () => speakText(getScreenNarrationText(), "quirky"));
   on("btnVoiceStop", "click", stopSpeaking);
 }
 
@@ -480,7 +507,10 @@ function teacherGuideCard(topicId, phase) {
         <div class="sir-figure">
           <div class="sir-head">
             <div class="sir-hair"></div>
+            <div class="sir-brow left"></div>
+            <div class="sir-brow right"></div>
             <div class="sir-eyes"><div class="sir-eye"></div><div class="sir-eye"></div></div>
+            <div class="sir-glasses"></div>
             <div class="sir-smile"></div>
           </div>
           <div class="sir-torso-row">
@@ -536,7 +566,10 @@ function renderLanding() {
             <div class="sir-figure">
               <div class="sir-head">
                 <div class="sir-hair"></div>
+                <div class="sir-brow left"></div>
+                <div class="sir-brow right"></div>
                 <div class="sir-eyes"><div class="sir-eye"></div><div class="sir-eye"></div></div>
+                <div class="sir-glasses"></div>
                 <div class="sir-smile"></div>
               </div>
               <div class="sir-torso-row">
