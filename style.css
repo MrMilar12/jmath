@@ -450,6 +450,38 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .th-icon { font-size: 2rem; }
 
+.teacher-guide {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--panel-b);
+  border-radius: 14px;
+  background: rgba(255,255,255,.06);
+  padding: 10px;
+}
+
+.teacher-css-anim.mini {
+  gap: 8px;
+  transform: scale(.72);
+  transform-origin: left center;
+  margin-right: -32px;
+}
+.teacher-css-anim.mini .chalkboard-anim {
+  width: 150px;
+  height: 100px;
+  border-width: 5px;
+}
+
+.teacher-bubble {
+  background: rgba(38,208,206,.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+.teacher-bubble strong { color: var(--warn); }
+
 .phase-bar {
   display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
 }
@@ -670,4 +702,11 @@ canvas {
   .xp-panel .xp-bar-outer { grid-column: 1 / -1; }
   .phase-bar .phase-step { min-width: 44px; font-size: .65rem; }
   .voice-dock { justify-content: center; }
+  .teacher-guide { grid-template-columns: 1fr; }
+  .teacher-css-anim.mini {
+    transform: scale(.68);
+    transform-origin: center;
+    margin-right: 0;
+    justify-content: center;
+  }
 }

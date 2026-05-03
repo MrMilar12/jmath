@@ -450,6 +450,55 @@ function draw() {
   renderLanding();
 }
 
+function moduleTeacherLine(topicId, phase) {
+  const lines = {
+    "1_1": "Notice how one outlier can trick your mean. Let's investigate the data carefully.",
+    "1_2": "Mean, median, and mode each tell a different story. Pick based on the situation.",
+    "1_3": "Compute first, then interpret. Numbers become meaningful when connected to context.",
+    "1_4": "Read each question like a detective. Look for clues before choosing a measure.",
+    "2_1": "Different input ranges need different rules. That is the heart of piecewise functions.",
+    "2_2": "Always check the condition first, then apply the matching formula.",
+    "2_3": "Use the graph to verify your computed outputs and catch mistakes quickly.",
+    "2_4": "In piecewise problems, interval selection is half the solution.",
+    "3_1": "A parabola's turning point gives the maximum or minimum. Focus on the vertex.",
+    "3_2": "From f(x)=ax^2+bx+c, coefficient a tells the opening direction immediately.",
+    "3_3": "Move the sliders and watch how a, b, and c reshape the graph in real time.",
+    "3_4": "Use vertex and graph behavior together to answer quadratic questions confidently."
+  };
+  return lines[`${topicId}_${phase}`] || "Keep going. Understand the concept, then apply it step by step.";
+}
+
+function teacherGuideCard(topicId, phase) {
+  return `
+    <div class="teacher-guide">
+      <div class="teacher-css-anim mini" aria-hidden="true">
+        <div class="chalkboard-anim">
+          <p class="ck c1">Think</p>
+          <p class="ck c2">Solve</p>
+          <p class="ck c3">Explain</p>
+        </div>
+        <div class="sir-figure">
+          <div class="sir-head">
+            <div class="sir-hair"></div>
+            <div class="sir-eyes"><div class="sir-eye"></div><div class="sir-eye"></div></div>
+            <div class="sir-smile"></div>
+          </div>
+          <div class="sir-torso-row">
+            <div class="sir-arm left-arm"></div>
+            <div class="sir-body"><div class="sir-tie"></div></div>
+            <div class="sir-arm right-arm"></div>
+          </div>
+          <div class="sir-legs"><div class="sir-leg"></div><div class="sir-leg"></div></div>
+        </div>
+      </div>
+      <div class="teacher-bubble">
+        <strong>Sir Jayson says:</strong>
+        <p>${esc(moduleTeacherLine(topicId, phase))}</p>
+      </div>
+    </div>
+  `;
+}
+
 // ─── XP bar panel ─────────────────────────────────────────────────────────────
 function xpPanel() {
   const pct = Math.min(100, Math.round(((db.xp % 100) / 100) * 100));
@@ -620,6 +669,7 @@ function renderModules() {
     <div class="modules-page">
       <h2>📚 Topics</h2>
       <p class="subtitle">Each topic follows 4 phases: Motivation → Discussion → Activity → Assessment</p>
+      ${teacherGuideCard(appState.topicId || 1, 1)}
       <div class="topic-list" id="topicList">${cards}</div>
       <div class="btn-row spread" style="margin-top:8px">
         <button data-go="preface" class="secondary">← Preface</button>
@@ -673,6 +723,7 @@ function topicHeader(t, phase) {
         ${phaseBar(t.id, phase, t.phases)}
       </div>
     </div>
+    ${teacherGuideCard(t.id, phase)}
   `;
 }
 
