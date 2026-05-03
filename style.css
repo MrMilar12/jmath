@@ -82,9 +82,36 @@ body::after {
   padding: 22px;
   display: grid;
   gap: 16px;
+  position: relative;
+  overflow: hidden;
 }
 .screen-enter { animation: enter .32s ease both; }
 @keyframes enter { from { opacity:0; transform:translateY(18px); } to { opacity:1; } }
+
+#app::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(120deg, transparent 25%, rgba(255,255,255,.08) 48%, transparent 72%),
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.07), transparent 35%);
+  transform: translateX(-120%);
+  animation: panelSweep 7.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes panelSweep {
+  to { transform: translateX(120%); }
+}
+
+.motion-item {
+  opacity: 0;
+  transform: translateY(14px) scale(.985);
+  animation: motionIn .5s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay: var(--motion-delay, 0ms);
+}
+@keyframes motionIn {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* ─── Type ─────────────────────────────────────────────────── */
 h1,h2,h3,h4 { font-family:"Palatino Linotype","Book Antiqua",Georgia,serif; }
@@ -121,6 +148,18 @@ h4 { font-size: 1.05rem; }
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--warn));
   transition: width .5s cubic-bezier(.34,1.56,.64,1);
+  position: relative;
+}
+.xp-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+  transform: translateX(-100%);
+  animation: barShine 2.8s ease-in-out infinite;
+}
+@keyframes barShine {
+  to { transform: translateX(100%); }
 }
 
 /* ─── Buttons ──────────────────────────────────────────────── */
@@ -166,6 +205,12 @@ button.wrong   { background: linear-gradient(135deg,#ef5566,#c4001e); }
   padding: 14px;
   display: grid;
   gap: 10px;
+  transition: transform var(--tr), border-color var(--tr), background var(--tr);
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.09);
 }
 
 /* ─── Inputs ───────────────────────────────────────────────── */
@@ -494,6 +539,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .topic-card:hover { transform: translateX(5px); background: rgba(255,255,255,.13); }
 .topic-card.complete { border-color: rgba(61,220,151,.45); }
+.topic-card {
+  transition: transform var(--tr), background var(--tr), border-color var(--tr), box-shadow var(--tr);
+}
+.topic-card:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+}
 .tc-icon { font-size: 1.9rem; flex-shrink: 0; }
 .tc-meta { flex: 1; display: grid; gap: 4px; }
 .tc-meta strong { font-size: .98rem; }
@@ -604,6 +655,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .phase-step.active span { background: var(--accent); border-color: var(--accent); color: #fff; }
 .phase-step.done span { background: var(--success); border-color: var(--success); color: #fff; }
+.phase-step.active span { animation: phasePulse 1.8s ease-in-out infinite; }
+@keyframes phasePulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
 
 /* ─── ===================================================
        PHASE CARDS
@@ -614,7 +670,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   background: rgba(255,255,255,.06);
   padding: 18px;
   display: grid; gap: 14px;
+  transition: transform var(--tr), border-color var(--tr);
 }
+.phase-card:hover { transform: translateY(-2px); }
 .phase-card.motivation { border-color: rgba(38,208,206,.35); }
 .phase-card.discussion { border-color: rgba(255,209,102,.3); }
 .phase-card.activity   { border-color: rgba(108,92,231,.35); }
@@ -799,6 +857,28 @@ canvas {
 .voice-subtitle.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.stats-result-grid > div,
+.badge-chip,
+.choice-btn {
+  transition: transform var(--tr), background var(--tr), border-color var(--tr);
+}
+.stats-result-grid > div:hover,
+.badge-chip:hover,
+.choice-btn:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .motion-item {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ─── Confetti & Toast ─────────────────────────────────────── */

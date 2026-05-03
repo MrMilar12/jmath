@@ -356,8 +356,22 @@ function render(html) {
   el.classList.remove("screen-enter");
   void el.offsetWidth;
   el.classList.add("screen-enter");
+  applyPageMotion();
   wireDataGo();
   wireVoiceDock();
+}
+
+function applyPageMotion() {
+  const nodes = document.querySelectorAll(
+    ".xp-panel, .landing-content, .author-card, .preface-card, .teacher-guide, .topic-card, .topic-header, .phase-card, .card, .discuss-section, .callout-box, .quiz-progress, .stats-result-grid, .badge-row, .voice-dock"
+  );
+  nodes.forEach((node, idx) => {
+    node.classList.remove("motion-item");
+    // Restart animation so each new screen draw feels dynamic.
+    void node.offsetWidth;
+    node.classList.add("motion-item");
+    node.style.setProperty("--motion-delay", `${Math.min(idx * 45, 540)}ms`);
+  });
 }
 
 function voiceDockHtml() {
