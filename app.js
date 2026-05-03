@@ -406,7 +406,7 @@ const QUIZ = {
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const appState = {
-  screen: "landing",
+  screen: "auth",
   topicId: 1,
   topicPhase: 1,
   quizState: null,
@@ -415,6 +415,15 @@ const appState = {
   quadratic: { a: 1, b: 0, c: 0, vGame: { round: 0, target: null, pts: 0, guessX: "", guessY: "" } },
   detective: { set: null, answered: false },
   discussSlide: {}
+};
+
+const authState = {
+  loading: true,
+  token: "",
+  user: null,
+  children: [],
+  childId: null,
+  mode: "login"
 };
 
 const voiceState = {
@@ -507,8 +516,9 @@ const SCENARIOS = {
   }
 };
 
-// ─── LocalStorage ─────────────────────────────────────────────────────────────
+// ─── Local storage + backend session ─────────────────────────────────────────
 const STORAGE_KEY = "sirjayson_gm_v1";
+const SESSION_KEY = "sirjayson_session_v1";
 const DEFAULT_DB = {
   xp: 0,
   level: 1,
@@ -521,23 +531,117 @@ const DEFAULT_DB = {
   }
 };
 
+function normalizeDb(p) {
+  return {
+    ...structuredClone(DEFAULT_DB),
+    ...(p || {}),
+    competency: { ...DEFAULT_DB.competency, ...((p && p.competency) || {}) },
+    phaseComplete: (p && p.phaseComplete) || {},
+    badges: Array.isArray(p && p.badges) ? p.badges : []
+  };
+}
+
 function loadDb() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return structuredClone(DEFAULT_DB);
+    return normalizeDb(JSON.parse(raw));
+  } catch (_) {
+    return structuredClone(DEFAULT_DB);
+  }
+}
+
+function saveSession() {
+  const payload = {
+    token: authState.token,
+    user: authState.user,
+    childId: authState.childId
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return;
     const p = JSON.parse(raw);
-    return {
-      ...structuredClone(DEFAULT_DB),
-      ...p,
-      competency: { ...DEFAULT_DB.competency, ...(p.competency || {}) },
-      phaseComplete: p.phaseComplete || {},
-      badges: Array.isArray(p.badges) ? p.badges : []
-    };
-  } catch (_) { return structuredClone(DEFAULT_DB); }
+    authState.token = p.token || "";
+    authState.user = p.user || null;
+    authState.childId = Number.isFinite(Number(p.childId)) ? Number(p.childId) : null;
+  } catch (_) {
+    authState.token = "";
+    authState.user = null;
+    authState.childId = null;
+  }
+}
+
+function clearSession() {
+  authState.token = "";
+  authState.user = null;
+  authState.children = [];
+  authState.childId = null;
+  localStorage.removeItem(SESSION_KEY);
+}
+
+async function api(path, opts = {}) {
+  const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  if (authState.token) headers.Authorization = `Bearer ${authState.token}`;
+  const res = await fetch(path, { ...opts, headers });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "Request failed");
+  return body;
+}
+
+async function syncProgressToServer() {
+  if (!authState.token || !authState.childId) return;
+  try {
+    await api(`/api/children/${authState.childId}/progress`, {
+      method: "PUT",
+      body: JSON.stringify({ snapshot: db })
+    });
+  } catch (_) {
+    // Keep local progress even if sync fails.
+  }
+}
+
+async function refreshChildren() {
+  if (!authState.token) return;
+  authState.children = await api("/api/children");
+}
+
+async function loadChildProgress(childId) {
+  const payload = await api(`/api/children/${childId}/progress`);
+  if (payload && payload.snapshot) {
+    db = normalizeDb(payload.snapshot);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    return;
+  }
+  db = structuredClone(DEFAULT_DB);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+}
+
+async function recordAssessmentResult(topic, score, total, pct) {
+  if (!authState.token || !authState.childId) return;
+  await api(`/api/children/${authState.childId}/results`, {
+    method: "POST",
+    body: JSON.stringify({
+      topicId: topic.id,
+      topicTitle: topic.title,
+      score,
+      total,
+      pct,
+      competency: db.competency,
+      xp: db.xp,
+      level: db.level
+    })
+  });
 }
 
 let db = loadDb();
-function saveDb() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function saveDb() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  void syncProgressToServer();
+}
 
 function markPhase(topicId, phase) {
   db.phaseComplete[`${topicId}_${phase}`] = true;
@@ -622,6 +726,7 @@ function render(html) {
   applyPageMotion();
   wireDataGo();
   wireVoiceDock();
+  wireAccountButtons();
   syncTeacherCoach();
 }
 
@@ -869,12 +974,13 @@ function wireDataGo() {
 
 function draw() {
   const s = appState.screen;
+  if (s === "auth") return renderAuth();
   if (s === "landing") return renderLanding();
   if (s === "preface") return renderPreface();
   if (s === "modules") return renderModules();
   if (s === "topic") return renderTopic();
   if (s === "analytics") return renderAnalytics();
-  renderLanding();
+  renderAuth();
 }
 
 function moduleTeacherLine(topicId, phase) {
@@ -1192,14 +1298,177 @@ function syncTeacherCoach() {
 // ─── XP bar panel ─────────────────────────────────────────────────────────────
 function xpPanel() {
   const pct = Math.min(100, Math.round(((db.xp % 100) / 100) * 100));
+  const child = authState.children.find(c => c.id === authState.childId);
+  const childLabel = child ? `${child.childName}${child.gradeLevel ? ` (Grade ${child.gradeLevel})` : ""}` : "No child selected";
   return `
     <div class="xp-panel">
       <span class="xp-chip">⚡ ${db.xp} XP</span>
       <span class="xp-chip">Level ${db.level}</span>
       <span class="xp-chip">🏅 ${db.badges.length}</span>
+      <span class="xp-chip">👧 ${esc(childLabel)}</span>
+      <button id="btnSwitchChild" class="secondary" type="button">Switch Child</button>
+      <button id="btnLogout" class="secondary" type="button">Logout</button>
       <div class="xp-bar-outer"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
     </div>
   `;
+}
+
+function wireAccountButtons() {
+  on("btnSwitchChild", "click", () => {
+    appState.screen = "auth";
+    draw();
+  });
+  on("btnLogout", "click", () => {
+    clearSession();
+    db = structuredClone(DEFAULT_DB);
+    saveDb();
+    appState.screen = "auth";
+    draw();
+  });
+}
+
+// ─── SCREEN: Auth ─────────────────────────────────────────────────────────────
+function renderAuth() {
+  if (authState.loading) {
+    render(`
+      <div class="preface-page">
+        <div class="preface-card"><h2>Loading...</h2><p class="subtitle">Checking user session and child records.</p></div>
+      </div>
+    `);
+    return;
+  }
+
+  const cOptions = authState.children.map(c => {
+    const active = c.id === authState.childId ? "selected" : "";
+    const grade = c.gradeLevel ? `• Grade ${esc(c.gradeLevel)}` : "";
+    return `<button class="topic-card ${active}" data-child="${c.id}"><div class="tc-icon">👧</div><div class="tc-meta"><strong>${esc(c.childName)}</strong><span class="tc-sub">${grade}</span></div><span class="tc-badge ${active ? "done" : ""}">${active ? "Active" : "Select"}</span></button>`;
+  }).join("");
+
+  const showLogin = authState.mode === "login";
+  const title = showLogin ? "Teacher/Parent Login" : "Create User Account";
+
+  render(`
+    <div class="preface-page">
+      <div class="gm-title-wrap">
+        <h1 class="gm-title">Student Records Setup</h1>
+        <div class="gm-subtitle">Database-backed progress by user and child profile</div>
+      </div>
+      <div class="preface-card">
+        <h2>🔐 ${title}</h2>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button id="btnModeLogin" class="${showLogin ? "" : "secondary"}">Login</button>
+          <button id="btnModeRegister" class="${showLogin ? "secondary" : ""}">Register</button>
+        </div>
+        <div class="stats-result-grid wider" style="grid-template-columns:1fr">
+          ${showLogin ? `
+            <label>Email<input id="authEmail" class="input" type="email" placeholder="teacher@email.com"></label>
+            <label>Password<input id="authPassword" class="input" type="password" placeholder="Enter password"></label>
+            <button id="btnLoginUser" class="btn-glow">Login</button>
+          ` : `
+            <label>Full Name<input id="regName" class="input" type="text" placeholder="Teacher name"></label>
+            <label>Email<input id="regEmail" class="input" type="email" placeholder="teacher@email.com"></label>
+            <label>Password<input id="regPassword" class="input" type="password" placeholder="Minimum 6 characters"></label>
+            <button id="btnRegisterUser" class="btn-glow">Create Account</button>
+          `}
+        </div>
+      </div>
+
+      ${authState.user ? `
+        <div class="preface-card">
+          <h2>👨‍🏫 Logged in as ${esc(authState.user.fullName)}</h2>
+          <p class="subtitle">Add children and select one profile so quiz statistics are recorded per child.</p>
+          <div class="btn-row" style="margin-bottom:8px">
+            <input id="childName" class="input" type="text" placeholder="Child name">
+            <input id="childGrade" class="input" type="text" placeholder="Grade level">
+            <button id="btnAddChild" class="secondary">Add Child</button>
+          </div>
+          <div class="topic-list">${cOptions || `<p class="hint">No child profile yet. Add one to continue.</p>`}</div>
+          <div class="btn-row" style="justify-content:center;margin-top:10px">
+            <button id="btnContinueLearning" class="btn-glow" ${authState.childId ? "" : "disabled"}>Continue to Learning</button>
+          </div>
+        </div>
+      ` : ""}
+    </div>
+  `);
+
+  on("btnModeLogin", "click", () => { authState.mode = "login"; draw(); });
+  on("btnModeRegister", "click", () => { authState.mode = "register"; draw(); });
+
+  on("btnRegisterUser", "click", async () => {
+    try {
+      const fullName = val("regName").trim();
+      const email = val("regEmail").trim();
+      const password = val("regPassword");
+      const out = await api("/api/register", {
+        method: "POST",
+        body: JSON.stringify({ fullName, email, password })
+      });
+      authState.token = out.token;
+      authState.user = out.user;
+      saveSession();
+      await refreshChildren();
+      toast("Account created.");
+      draw();
+    } catch (err) {
+      swalPop({ title: "Cannot register", text: err.message, icon: "error" });
+    }
+  });
+
+  on("btnLoginUser", "click", async () => {
+    try {
+      const email = val("authEmail").trim();
+      const password = val("authPassword");
+      const out = await api("/api/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+      authState.token = out.token;
+      authState.user = out.user;
+      saveSession();
+      await refreshChildren();
+      toast("Login successful.");
+      draw();
+    } catch (err) {
+      swalPop({ title: "Login failed", text: err.message, icon: "error" });
+    }
+  });
+
+  on("btnAddChild", "click", async () => {
+    try {
+      const childName = val("childName").trim();
+      const gradeLevel = val("childGrade").trim();
+      if (!childName) return toast("Enter child name first.");
+      const child = await api("/api/children", {
+        method: "POST",
+        body: JSON.stringify({ childName, gradeLevel })
+      });
+      authState.childId = child.id;
+      saveSession();
+      await refreshChildren();
+      await loadChildProgress(child.id);
+      toast("Child profile added.");
+      draw();
+    } catch (err) {
+      swalPop({ title: "Cannot add child", text: err.message, icon: "error" });
+    }
+  });
+
+  document.querySelectorAll("[data-child]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const childId = Number(btn.dataset.child);
+      authState.childId = childId;
+      saveSession();
+      await loadChildProgress(childId);
+      toast("Child selected.");
+      draw();
+    });
+  });
+
+  on("btnContinueLearning", "click", () => {
+    if (!authState.childId) return;
+    appState.screen = "landing";
+    draw();
+  });
 }
 
 // ─── SCREEN: Landing ──────────────────────────────────────────────────────────
@@ -1261,7 +1530,7 @@ function renderLanding() {
           <button class="btn-glow" id="btnStart">🚀 Start Learning</button>
         </div>
         <p class="hint" style="text-align:center;margin-top:8px">
-          Progress is saved automatically on your device.
+          Progress is saved automatically to your selected child profile.
         </p>
       </div>
     </div>
@@ -2545,6 +2814,9 @@ function renderQuizResult(t, qs) {
   grantXp(30, "Assessment completed");
   checkBadges();
   if (pct >= 70) launchConfetti();
+  recordAssessmentResult(t, qs.score, qs.items.length, pct).catch(() => {
+    // Keep learner flow smooth even if network is temporarily unavailable.
+  });
 
   render(`
     ${topicHeader(t, 4)}
@@ -2964,8 +3236,35 @@ function shuffle(arr) {
 function fmtSigned(v) { return v >= 0 ? `+ ${v}` : `− ${Math.abs(v)}`; }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+async function bootstrapAuth() {
+  loadSession();
+  if (!authState.token) {
+    authState.loading = false;
+    appState.screen = "auth";
+    return;
+  }
+
+  try {
+    const me = await api("/api/me");
+    authState.user = me;
+    await refreshChildren();
+    if (authState.childId) {
+      const exists = authState.children.some(c => c.id === authState.childId);
+      if (exists) await loadChildProgress(authState.childId);
+      else authState.childId = null;
+    }
+    saveSession();
+    appState.screen = authState.childId ? "landing" : "auth";
+  } catch (_) {
+    clearSession();
+    appState.screen = "auth";
+  } finally {
+    authState.loading = false;
+  }
+}
+
 initVoiceEngine();
 bootstrapVoiceAutoplay();
 loadTheme();
 on("themeToggle", "click", toggleTheme);
-draw();
+bootstrapAuth().finally(draw);

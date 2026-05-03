@@ -124,8 +124,8 @@ h4 { font-size: 1.05rem; }
 
 /* ─── XP Panel ─────────────────────────────────────────────── */
 .xp-panel {
-  display: grid;
-  grid-template-columns: repeat(3, auto) 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
@@ -214,8 +214,8 @@ button.wrong   { background: linear-gradient(135deg,#ef5566,#c4001e); }
 }
 
 /* ─── Inputs ───────────────────────────────────────────────── */
-label { font-weight: 700; font-size: .88rem; }
-textarea, input[type="number"], input[type="text"] {
+label { display: grid; gap: 6px; font-weight: 700; font-size: .88rem; }
+textarea, input[type="number"], input[type="text"], input[type="email"], input[type="password"], .input {
   width: 100%;
   background: rgba(255,255,255,.1);
   border: 1px solid var(--panel-b);
@@ -625,6 +625,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .topic-card:hover { transform: translateX(5px); background: rgba(255,255,255,.13); }
 .topic-card.complete { border-color: rgba(61,220,151,.45); }
+.topic-card.selected {
+  border-color: rgba(38,208,206,.62);
+  box-shadow: 0 0 0 2px rgba(38,208,206,.16);
+}
 .topic-card {
   transition: transform var(--tr), background var(--tr), border-color var(--tr), box-shadow var(--tr);
 }
@@ -1241,8 +1245,8 @@ canvas {
 @media (max-width: 860px) {
   #app { padding: 16px; }
   .chart-row, .stats-result-grid, .quiz-inline { grid-template-columns: 1fr; }
-  .xp-panel { grid-template-columns: 1fr 1fr; }
-  .xp-panel .xp-bar-outer { grid-column: 1 / -1; }
+  .xp-panel { justify-content: flex-start; }
+  .xp-panel .xp-bar-outer { width: 100%; flex-basis: 100%; }
   .phase-bar .phase-step { min-width: 44px; font-size: .65rem; }
   .voice-dock { justify-content: center; }
   .teacher-guide { grid-template-columns: 1fr; }

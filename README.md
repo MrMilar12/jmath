@@ -19,10 +19,12 @@ The system is built to:
 
 ## System Type
 
-- Static website: HTML + CSS + JavaScript
-- No backend
-- Uses LocalStorage for persistence
-- Can run offline (no required external API)
+- Web app with frontend and backend
+- Frontend: HTML + CSS + JavaScript
+- Backend: Node.js + Express + SQLite
+- Authentication: user account (register/login)
+- Multi-child profiles per user
+- Child-specific progress + assessment records in SQLite
 
 ## Competency-Based Modules
 
@@ -79,13 +81,20 @@ The system is built to:
 - Badge unlocking
 - Completion indicators per module
 
-## Data Stored in LocalStorage
+## Data Storage
 
-- XP, level, badges
-- Module completion flags
-- Competency scores and attempts
-- Quiz history
-- UI theme preference
+### SQLite Database
+
+- User accounts (`users` table)
+- Child profiles (`children` table)
+- Per-child progress snapshots (`child_progress` table)
+- Per-assessment records (`assessment_results` table)
+
+### Browser Local Cache
+
+- Session token + selected child
+- Theme preference
+- Temporary offline cache of current child progress
 
 ## Learning Flow
 
@@ -104,9 +113,14 @@ The system is built to:
 
 ## How to Run
 
-1. Open `index.html` in a browser.
-2. Start with Module 1, 2, or 3 from the home screen.
-3. Open Results & Analytics to view competency progress.
+1. Install dependencies:
+   - `npm install`
+2. Start the app server:
+   - `npm start`
+3. Open `http://localhost:3000` in your browser.
+4. Register a user account or login.
+5. Add/select a child profile.
+6. Start learning; quiz and competency statistics are saved to the selected child profile.
 
 ## Suggested Next Development Phases
 
