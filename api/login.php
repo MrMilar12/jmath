@@ -22,8 +22,13 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
     respond(['error' => 'Invalid credentials'], 401);
 }
 
-$token = make_token(['uid' => (int)$user['id'], 'email' => $user['email']]);
+$token = make_token(['uid' => (int)$user['id'], 'email' => $user['email'], 'role' => $user['role']]);
 respond([
     'token' => $token,
-    'user'  => ['id' => (int)$user['id'], 'fullName' => $user['full_name'], 'email' => $user['email']]
+    'user'  => [
+        'id'       => (int)$user['id'],
+        'fullName' => $user['full_name'],
+        'email'    => $user['email'],
+        'role'     => $user['role'],
+    ],
 ]);

@@ -423,7 +423,8 @@ const authState = {
   user: null,
   children: [],
   childId: null,
-  mode: "login"
+  mode: "login",
+  regRole: "teacher"  // role selected on the register form
 };
 
 const voiceState = {
@@ -1310,14 +1311,21 @@ function syncTeacherCoach() {
 function xpPanel() {
   const pct = Math.min(100, Math.round(((db.xp % 100) / 100) * 100));
   const child = authState.children.find(c => c.id === authState.childId);
-  const childLabel = child ? `${child.childName}${child.gradeLevel ? ` (Grade ${child.gradeLevel})` : ""}` : "No child selected";
+  const isStudent = authState.user?.role === "student";
+  const childLabel = child
+    ? `${child.childName}${child.gradeLevel ? ` (Grade ${child.gradeLevel})` : ""}`
+    : "No profile selected";
+  const switchBtn = isStudent
+    ? ``
+    : `<button id="btnSwitchChild" class="secondary" type="button">Switch Child</button>`;
+  const icon = isStudent ? "🎓" : "👧";
   return `
     <div class="xp-panel">
       <span class="xp-chip">⚡ ${db.xp} XP</span>
       <span class="xp-chip">Level ${db.level}</span>
       <span class="xp-chip">🏅 ${db.badges.length}</span>
-      <span class="xp-chip">👧 ${esc(childLabel)}</span>
-      <button id="btnSwitchChild" class="secondary" type="button">Switch Child</button>
+      <span class="xp-chip">${icon} ${esc(childLabel)}</span>
+      ${switchBtn}
       <button id="btnLogout" class="secondary" type="button">Logout</button>
       <div class="xp-bar-outer"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
     </div>
@@ -1355,8 +1363,10 @@ function renderAuth() {
     return `<button class="topic-card ${active}" data-child="${c.id}"><div class="tc-icon">👧</div><div class="tc-meta"><strong>${esc(c.childName)}</strong><span class="tc-sub">${grade}</span></div><span class="tc-badge ${active ? "done" : ""}">${active ? "Active" : "Select"}</span></button>`;
   }).join("");
 
-  const showLogin = authState.mode === "login";
-  const title = showLogin ? "Teacher/Parent Login" : "Create User Account";
+  const showLogin  = authState.mode === "login";
+  const regStudent = authState.regRole === "student";
+  const title = showLogin ? "Login" : "Create Account";
+  const isStudent  = authState.user?.role === "student";
 
   render(`
     <div class="preface-page">
@@ -1372,24 +1382,28 @@ function renderAuth() {
         </div>
         <div class="stats-result-grid wider" style="grid-template-columns:1fr">
           ${showLogin ? `
-            <label>Email<input id="authEmail" class="input" type="email" placeholder="teacher@email.com"></label>
+            <label>Email<input id="authEmail" class="input" type="email" placeholder="your@email.com"></label>
             <label>Password<input id="authPassword" class="input" type="password" placeholder="Enter password"></label>
             <button id="btnLoginUser" class="btn-glow">Login</button>
           ` : `
-            <label>Full Name<input id="regName" class="input" type="text" placeholder="Teacher name"></label>
-            <label>Email<input id="regEmail" class="input" type="email" placeholder="teacher@email.com"></label>
+            <div class="btn-row" style="margin-bottom:4px">
+              <button id="btnRoleTeacher" class="${!regStudent ? "" : "secondary"}">👨‍🏫 Teacher / Parent</button>
+              <button id="btnRoleStudent" class="${regStudent ? "" : "secondary"}">🎓 Student</button>
+            </div>
+            <label>Full Name<input id="regName" class="input" type="text" placeholder="${regStudent ? "Student name" : "Teacher / Parent name"}"></label>
+            <label>Email<input id="regEmail" class="input" type="email" placeholder="your@email.com"></label>
             <label>Password<input id="regPassword" class="input" type="password" placeholder="Minimum 6 characters"></label>
-            <button id="btnRegisterUser" class="btn-glow">Create Account</button>
+            <button id="btnRegisterUser" class="btn-glow">Create ${regStudent ? "Student" : "Teacher"} Account</button>
           `}
         </div>
       </div>
 
-      ${authState.user ? `
+      ${authState.user && !isStudent ? `
         <div class="preface-card">
           <h2>👨‍🏫 Logged in as ${esc(authState.user.fullName)}</h2>
-          <p class="subtitle">Add children and select one profile so quiz statistics are recorded per child.</p>
+          <p class="subtitle">Add student/child profiles and select one so quiz statistics are recorded per profile.</p>
           <div class="btn-row" style="margin-bottom:8px">
-            <input id="childName" class="input" type="text" placeholder="Child name">
+            <input id="childName" class="input" type="text" placeholder="Child / student name">
             <input id="childGrade" class="input" type="text" placeholder="Grade level">
             <button id="btnAddChild" class="secondary">Add Child</button>
           </div>
@@ -1399,23 +1413,46 @@ function renderAuth() {
           </div>
         </div>
       ` : ""}
+
+      ${authState.user && isStudent ? `
+        <div class="preface-card">
+          <h2>🎓 Logged in as ${esc(authState.user.fullName)}</h2>
+          <p class="subtitle">Your learning profile is ready. Click below to start.</p>
+          <div class="btn-row" style="justify-content:center;margin-top:10px">
+            <button id="btnContinueLearning" class="btn-glow">Continue to Learning</button>
+          </div>
+        </div>
+      ` : ""}
     </div>
   `);
 
-  on("btnModeLogin", "click", () => { authState.mode = "login"; draw(); });
+  on("btnModeLogin",    "click", () => { authState.mode = "login";    draw(); });
   on("btnModeRegister", "click", () => { authState.mode = "register"; draw(); });
+  on("btnRoleTeacher",  "click", () => { authState.regRole = "teacher"; draw(); });
+  on("btnRoleStudent",  "click", () => { authState.regRole = "student"; draw(); });
 
   on("btnRegisterUser", "click", async () => {
     try {
       const fullName = val("regName").trim();
-      const email = val("regEmail").trim();
+      const email    = val("regEmail").trim();
       const password = val("regPassword");
+      const role     = authState.regRole;
       const out = await api("/api/register", {
         method: "POST",
-        body: JSON.stringify({ fullName, email, password })
+        body: JSON.stringify({ fullName, email, password, role })
       });
       authState.token = out.token;
-      authState.user = out.user;
+      authState.user  = out.user;
+      if (role === "student" && out.childId) {
+        authState.childId = out.childId;
+        saveSession();
+        await refreshChildren();
+        await loadChildProgress(out.childId);
+        toast("Account created. Welcome, " + fullName + "!");
+        appState.screen = "landing";
+        draw();
+        return;
+      }
       saveSession();
       await refreshChildren();
       toast("Account created.");
@@ -1427,16 +1464,27 @@ function renderAuth() {
 
   on("btnLoginUser", "click", async () => {
     try {
-      const email = val("authEmail").trim();
+      const email    = val("authEmail").trim();
       const password = val("authPassword");
       const out = await api("/api/login", {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
       authState.token = out.token;
-      authState.user = out.user;
+      authState.user  = out.user;
       saveSession();
       await refreshChildren();
+      // Students have exactly one profile (themselves) — auto-select and skip the picker
+      if (out.user.role === "student" && authState.children.length > 0) {
+        const child = authState.children[0];
+        authState.childId = child.id;
+        saveSession();
+        await loadChildProgress(child.id);
+        toast("Welcome back, " + out.user.fullName + "!");
+        appState.screen = "landing";
+        draw();
+        return;
+      }
       toast("Login successful.");
       draw();
     } catch (err) {
@@ -3259,6 +3307,12 @@ async function bootstrapAuth() {
     const me = await api("/api/me");
     authState.user = me;
     await refreshChildren();
+
+    // Students are their own profile — auto-select the first (and only) child
+    if (me.role === "student" && !authState.childId && authState.children.length > 0) {
+      authState.childId = authState.children[0].id;
+    }
+
     if (authState.childId) {
       const exists = authState.children.some(c => c.id === authState.childId);
       if (exists) await loadChildProgress(authState.childId);

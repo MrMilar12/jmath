@@ -10,12 +10,13 @@ CREATE DATABASE IF NOT EXISTS jmath_db
 
 USE jmath_db;
 
--- Teacher / parent user accounts
+-- Teacher / parent and student user accounts
 CREATE TABLE IF NOT EXISTS users (
   id            INT          AUTO_INCREMENT PRIMARY KEY,
   full_name     VARCHAR(200) NOT NULL,
   email         VARCHAR(200) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
+  role          ENUM('teacher','student') NOT NULL DEFAULT 'teacher',
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

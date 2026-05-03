@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $authUser = require_auth();
 
 $db   = get_db();
-$stmt = $db->prepare('SELECT id, full_name, email FROM users WHERE id = ?');
+$stmt = $db->prepare('SELECT id, full_name, email, role FROM users WHERE id = ?');
 $stmt->execute([$authUser['uid']]);
 $user = $stmt->fetch();
 
@@ -16,4 +16,9 @@ if (!$user) {
     respond(['error' => 'User not found'], 404);
 }
 
-respond(['id' => (int)$user['id'], 'fullName' => $user['full_name'], 'email' => $user['email']]);
+respond([
+    'id'       => (int)$user['id'],
+    'fullName' => $user['full_name'],
+    'email'    => $user['email'],
+    'role'     => $user['role'],
+]);
