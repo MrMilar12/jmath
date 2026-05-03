@@ -590,10 +590,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 
 .teacher-coach-overlay {
-  position: static;
-  width: min(1020px, calc(100% - 32px));
-  margin: 10px auto 0;
-  z-index: 30;
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: min(1120px, calc(100vw - 20px));
+  z-index: 145;
   pointer-events: none;
 }
 .teacher-coach-overlay .teacher-guide {
@@ -602,9 +604,21 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   backdrop-filter: blur(8px);
   border-color: rgba(160, 220, 255, .34);
   pointer-events: auto;
+  grid-template-columns: 180px 1fr;
+  border-radius: 18px;
+  padding: 12px 14px;
 }
 .teacher-coach-overlay .teacher-bubble {
   min-height: 96px;
+}
+.teacher-coach-overlay .teacher-bubble::before {
+  display: none;
+}
+.teacher-coach-overlay .teacher-css-anim.mini {
+  transform: scale(.8);
+  transform-origin: center;
+  margin-right: 0;
+  justify-content: center;
 }
 .teacher-guide::before,
 .teacher-guide::after {
@@ -970,27 +984,23 @@ canvas {
   .teacher-bubble::before { display: none; }
 }
 
-@media (min-width: 1500px) {
+@media (max-width: 1499px) {
   .teacher-coach-overlay {
-    position: fixed;
-    right: 18px;
-    top: 96px;
-    width: 360px;
-    margin: 0;
-    z-index: 145;
-  }
-  body.has-coach #app {
-    width: min(1020px, calc(100% - 420px));
-    margin-right: 390px;
-    margin-left: auto;
+    width: calc(100vw - 16px);
+    bottom: 8px;
   }
 }
 
-@media (max-width: 1499px) {
+@media (max-width: 860px) {
   .teacher-coach-overlay {
-    position: static;
-    width: min(1020px, calc(100% - 32px));
-    margin: 10px auto 0;
-    z-index: 30;
+    width: calc(100vw - 10px);
+    bottom: 6px;
+  }
+  .teacher-coach-overlay .teacher-guide {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+  .teacher-coach-overlay .teacher-css-anim.mini {
+    transform: scale(.66);
   }
 }
