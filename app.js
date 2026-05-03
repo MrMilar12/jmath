@@ -655,6 +655,14 @@ function moduleTeacherDialog(topicId, phase, screen) {
     ];
   }
 
+  if (screen === "preface") {
+    return [
+      "This preface is your map. It shows what you will learn and why each topic matters.",
+      "You are not expected to be perfect right away. Learn, practice, and improve with every phase.",
+      "Keep a growth mindset, enjoy the games, and let mathematics become a skill you can use in real life."
+    ];
+  }
+
   if (screen === "modules") {
     return [
       "Choose one topic first. We will move step by step so learning stays clear and manageable.",
@@ -714,6 +722,13 @@ function getCoachContext() {
       topicId: 1,
       phase: 1,
       label: "Welcome briefing"
+    };
+  }
+  if (appState.screen === "preface") {
+    return {
+      topicId: 1,
+      phase: 1,
+      label: "Preface guide"
     };
   }
   if (appState.screen === "modules") {
@@ -1044,6 +1059,17 @@ function renderPreface() {
         <ul class="competency-list">
           ${COMPETENCIES.map((c, i) => `<li><span class="comp-num">${i + 1}</span>${esc(c)}</li>`).join("")}
         </ul>
+      </div>
+
+      <div class="preface-card preface-fun">
+        <h2>🎮 Today's Mission</h2>
+        <div class="mission-chips">
+          <span class="mission-chip">🧠 Think Critically</span>
+          <span class="mission-chip">🎯 Solve with Strategy</span>
+          <span class="mission-chip">📈 Explain Your Reasoning</span>
+          <span class="mission-chip">🏅 Earn XP & Badges</span>
+        </div>
+        <p class="subtitle">Every correct answer is progress. Every mistake is feedback. Keep going!</p>
       </div>
 
       <div class="btn-row" style="justify-content:center;gap:12px;margin-top:4px">
