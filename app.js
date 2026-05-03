@@ -183,6 +183,7 @@ const voiceRuntime = {
 const coachRuntime = {
   key: "",
   step: 0,
+  corner: "right",
   dismissed: false,
   lastTypedToken: "",
   typingTimer: null
@@ -593,6 +594,14 @@ function moduleTeacherLine(topicId, phase) {
 }
 
 function moduleTeacherDialog(topicId, phase, screen) {
+  if (screen === "landing") {
+    return [
+      "Welcome, Math Explorer. I will guide you like a game coach while you learn.",
+      "Click Next and watch this dialogue move, just like a live talking character.",
+      "When you are ready, press Start Learning and we begin your first module adventure."
+    ];
+  }
+
   if (screen === "modules") {
     return [
       "Pick one topic first. We will go step by step so you do not feel lost.",
@@ -647,6 +656,13 @@ function teacherGuideCard(topicId, phase, label = "Now discussing") {
 }
 
 function getCoachContext() {
+  if (appState.screen === "landing") {
+    return {
+      topicId: 1,
+      phase: 1,
+      label: "Welcome briefing"
+    };
+  }
   if (appState.screen === "modules") {
     return {
       topicId: appState.topicId || 1,
@@ -712,7 +728,15 @@ function updateCoachButtons(lines) {
   if (!next || !ok) return;
   const last = coachRuntime.step >= lines.length - 1;
   next.style.display = last ? "none" : "inline-flex";
+  next.disabled = last;
   ok.textContent = last ? "OK" : "Skip";
+}
+
+function applyCoachCornerClass() {
+  const overlay = byId("teacherCoachOverlay");
+  if (!overlay) return;
+  overlay.classList.remove("corner-left", "corner-right");
+  overlay.classList.add(coachRuntime.corner === "left" ? "corner-left" : "corner-right");
 }
 
 function fadeCoachBubble(after) {
@@ -739,6 +763,8 @@ function wireTeacherCoach(ctx) {
     if (coachRuntime.step >= lines.length - 1) return;
     fadeCoachBubble(() => {
       coachRuntime.step += 1;
+      coachRuntime.corner = coachRuntime.corner === "right" ? "left" : "right";
+      applyCoachCornerClass();
       const nxt = lines[coachRuntime.step] || "";
       setCoachLine(nxt, `${coachRuntime.key}_${coachRuntime.step}`);
       updateCoachButtons(lines);
@@ -769,6 +795,7 @@ function syncTeacherCoach() {
   if (coachRuntime.key !== key) {
     coachRuntime.key = key;
     coachRuntime.step = 0;
+    coachRuntime.corner = "right";
     coachRuntime.dismissed = false;
     coachRuntime.lastTypedToken = "";
   }
@@ -782,7 +809,7 @@ function syncTeacherCoach() {
   document.body.classList.add("has-coach");
 
   const html = `
-    <aside id="teacherCoachOverlay" class="teacher-coach-overlay motion-item" style="--motion-delay:120ms">
+    <aside id="teacherCoachOverlay" class="teacher-coach-overlay ${coachRuntime.corner === "left" ? "corner-left" : "corner-right"} motion-item" style="--motion-delay:120ms">
       ${teacherGuideCard(ctx.topicId, ctx.phase, ctx.label)}
     </aside>
   `;
@@ -809,7 +836,7 @@ function xpPanel() {
 // ─── SCREEN: Landing ──────────────────────────────────────────────────────────
 function renderLanding() {
   render(`
-    <div class="landing-page">
+    <div class="landing-page landing-intro">
       <div class="teacher-stage">
         <div class="teacher-stack">
           <div class="tenor-wrap">
