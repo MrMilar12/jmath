@@ -4,11 +4,11 @@
 function swalPop(opts) {
   if (typeof Swal === "undefined") return Promise.resolve({ isConfirmed: true });
   return Swal.fire({
-    background: "rgba(6, 19, 30, 0.97)",
-    color: "#f3fbff",
-    confirmButtonColor: "#26d0ce",
-    cancelButtonColor: "rgba(255,255,255,0.15)",
-    backdrop: "rgba(0,0,0,0.72)",
+    background: "rgba(255,255,255,0.97)",
+    color: "#1e1030",
+    confirmButtonColor: "#7c3aed",
+    cancelButtonColor: "rgba(124,58,237,0.12)",
+    backdrop: "rgba(30,16,48,0.72)",
     customClass: { popup: "swal-custom-popup" },
     ...opts
   });
@@ -592,6 +592,11 @@ function apiUrl(path) {
   if (path === "/api/register")  return "/api/register.php";
   if (path === "/api/login")     return "/api/login.php";
   if (path === "/api/me")        return "/api/me.php";
+  if (path === "/api/users")     return "/api/users.php";
+  if (path.startsWith("/api/admin")) {
+    const qs = path.includes("?") ? path.slice(path.indexOf("?")) : "";
+    return "/api/admin.php" + qs;
+  }
   return path;
 }
 
@@ -976,22 +981,26 @@ function wireDataGo() {
   document.querySelectorAll("[data-go]").forEach(btn => {
     btn.addEventListener("click", () => {
       const t = btn.dataset.go;
-      if (t === "modules") { appState.screen = "modules"; draw(); }
-      else if (t === "landing") { appState.screen = "landing"; draw(); }
+      if (t === "modules")  { appState.screen = "modules";  draw(); }
+      else if (t === "landing")  { appState.screen = "landing";  draw(); }
       else if (t === "analytics") { appState.screen = "analytics"; draw(); }
-      else if (t === "preface") { appState.screen = "preface"; draw(); }
+      else if (t === "preface")  { appState.screen = "preface";  draw(); }
+      else if (t === "users")    { appState.screen = "users";    draw(); }
+      else if (t === "admin")    { appState.screen = "admin";    draw(); }
     });
   });
 }
 
 function draw() {
   const s = appState.screen;
-  if (s === "auth") return renderAuth();
-  if (s === "landing") return renderLanding();
-  if (s === "preface") return renderPreface();
-  if (s === "modules") return renderModules();
-  if (s === "topic") return renderTopic();
+  if (s === "auth")      return renderAuth();
+  if (s === "landing")   return renderLanding();
+  if (s === "preface")   return renderPreface();
+  if (s === "modules")   return renderModules();
+  if (s === "topic")     return renderTopic();
   if (s === "analytics") return renderAnalytics();
+  if (s === "users")     return renderUsers();
+  if (s === "admin")     return renderAdmin();
   renderAuth();
 }
 
@@ -1312,22 +1321,30 @@ function xpPanel() {
   const pct = Math.min(100, Math.round(((db.xp % 100) / 100) * 100));
   const child = authState.children.find(c => c.id === authState.childId);
   const isStudent = authState.user?.role === "student";
+  const isAdmin   = authState.user?.role === "admin";
   const childLabel = child
     ? `${child.childName}${child.gradeLevel ? ` (Grade ${child.gradeLevel})` : ""}`
+    : isAdmin ? authState.user?.fullName || "Admin"
     : "No profile selected";
-  const switchBtn = isStudent
+  const switchBtn = isStudent || isAdmin
     ? ``
     : `<button id="btnSwitchChild" class="secondary" type="button">Switch Child</button>`;
-  const icon = isStudent ? "🎓" : "👧";
+  const icon = isAdmin ? "🛡️" : isStudent ? "🎓" : "👧";
+  const adminLinks = isAdmin
+    ? `<button data-go="admin" class="secondary" type="button">⚙️ Admin</button>
+       <button data-go="users" class="secondary" type="button">👥 Users</button>`
+    : !isStudent
+    ? `<button data-go="users" class="secondary" type="button">👥 Students</button>` : "";
   return `
     <div class="xp-panel">
       <span class="xp-chip">⚡ ${db.xp} XP</span>
       <span class="xp-chip">Level ${db.level}</span>
       <span class="xp-chip">🏅 ${db.badges.length}</span>
       <span class="xp-chip">${icon} ${esc(childLabel)}</span>
+      ${adminLinks}
       ${switchBtn}
       <button id="btnLogout" class="secondary" type="button">Logout</button>
-      <div class="xp-bar-outer"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
+      <div class="xp-bar-outer" style="width:100%;flex-basis:100%"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
     </div>
   `;
 }
@@ -1344,6 +1361,8 @@ function wireAccountButtons() {
     appState.screen = "auth";
     draw();
   });
+  // wire any data-go navigation buttons rendered inside the XP panel or current screen
+  wireDataGo();
 }
 
 // ─── SCREEN: Auth ─────────────────────────────────────────────────────────────
@@ -1351,7 +1370,7 @@ function renderAuth() {
   if (authState.loading) {
     render(`
       <div class="preface-page">
-        <div class="preface-card"><h2>Loading...</h2><p class="subtitle">Checking user session and child records.</p></div>
+        <div class="preface-card"><h2>⏳ Loading...</h2><p class="subtitle">Checking user session and child records.</p></div>
       </div>
     `);
     return;
@@ -1360,66 +1379,87 @@ function renderAuth() {
   const cOptions = authState.children.map(c => {
     const active = c.id === authState.childId ? "selected" : "";
     const grade = c.gradeLevel ? `• Grade ${esc(c.gradeLevel)}` : "";
-    return `<button class="topic-card ${active}" data-child="${c.id}"><div class="tc-icon">👧</div><div class="tc-meta"><strong>${esc(c.childName)}</strong><span class="tc-sub">${grade}</span></div><span class="tc-badge ${active ? "done" : ""}">${active ? "Active" : "Select"}</span></button>`;
+    return `<button class="topic-card ${active}" data-child="${c.id}"><div class="tc-icon">👧</div><div class="tc-meta"><strong>${esc(c.childName)}</strong><span class="tc-sub">${grade}</span></div><span class="tc-badge ${active ? "done" : ""}">${active ? "Active ✓" : "Select"}</span></button>`;
   }).join("");
 
   const showLogin  = authState.mode === "login";
   const regStudent = authState.regRole === "student";
+  const regAdmin   = authState.regRole === "admin";
   const title = showLogin ? "Login" : "Create Account";
   const isStudent  = authState.user?.role === "student";
+  const isAdmin    = authState.user?.role === "admin";
+
+  let roleBtns = "";
+  if (!showLogin) {
+    roleBtns = `
+      <div class="btn-row" style="margin-bottom:6px;flex-wrap:wrap">
+        <button id="btnRoleTeacher" class="${!regStudent && !regAdmin ? "" : "secondary"}">👨‍🏫 Teacher</button>
+        <button id="btnRoleStudent" class="${regStudent ? "" : "secondary"}">🎓 Student</button>
+        <button id="btnRoleAdmin"   class="${regAdmin   ? "" : "secondary"}">🛡️ Admin</button>
+      </div>`;
+  }
 
   render(`
     <div class="preface-page">
       <div class="gm-title-wrap">
-        <h1 class="gm-title">Student Records Setup</h1>
-        <div class="gm-subtitle">Database-backed progress by user and child profile</div>
+        <h1 class="gm-title">🎓 Sir Jayson's Learning Domain</h1>
+        <div class="gm-subtitle">Sign in or create your account to get started!</div>
       </div>
       <div class="preface-card">
         <h2>🔐 ${title}</h2>
-        <div class="btn-row" style="margin-bottom:8px">
-          <button id="btnModeLogin" class="${showLogin ? "" : "secondary"}">Login</button>
-          <button id="btnModeRegister" class="${showLogin ? "secondary" : ""}">Register</button>
+        <div class="btn-row" style="margin-bottom:10px">
+          <button id="btnModeLogin" class="${showLogin ? "" : "secondary"}">🔑 Login</button>
+          <button id="btnModeRegister" class="${showLogin ? "secondary" : ""}">✨ Register</button>
         </div>
         <div class="stats-result-grid wider" style="grid-template-columns:1fr">
           ${showLogin ? `
-            <label>Email<input id="authEmail" class="input" type="email" placeholder="your@email.com"></label>
-            <label>Password<input id="authPassword" class="input" type="password" placeholder="Enter password"></label>
-            <button id="btnLoginUser" class="btn-glow">Login</button>
+            <label>📧 Email<input id="authEmail" class="input" type="email" placeholder="your@email.com"></label>
+            <label>🔒 Password<input id="authPassword" class="input" type="password" placeholder="Enter password"></label>
+            <button id="btnLoginUser" class="btn-glow">🚀 Login</button>
           ` : `
-            <div class="btn-row" style="margin-bottom:4px">
-              <button id="btnRoleTeacher" class="${!regStudent ? "" : "secondary"}">👨‍🏫 Teacher / Parent</button>
-              <button id="btnRoleStudent" class="${regStudent ? "" : "secondary"}">🎓 Student</button>
-            </div>
-            <label>Full Name<input id="regName" class="input" type="text" placeholder="${regStudent ? "Student name" : "Teacher / Parent name"}"></label>
-            <label>Email<input id="regEmail" class="input" type="email" placeholder="your@email.com"></label>
-            <label>Password<input id="regPassword" class="input" type="password" placeholder="Minimum 6 characters"></label>
-            <button id="btnRegisterUser" class="btn-glow">Create ${regStudent ? "Student" : "Teacher"} Account</button>
+            ${roleBtns}
+            <label>👤 Full Name<input id="regName" class="input" type="text" placeholder="${regStudent ? "Student name" : regAdmin ? "Admin name" : "Teacher / Parent name"}"></label>
+            <label>📧 Email<input id="regEmail" class="input" type="email" placeholder="your@email.com"></label>
+            <label>🔒 Password<input id="regPassword" class="input" type="password" placeholder="Minimum 6 characters"></label>
+            <button id="btnRegisterUser" class="btn-glow">✨ Create ${regStudent ? "Student" : regAdmin ? "Admin" : "Teacher"} Account</button>
           `}
         </div>
       </div>
 
-      ${authState.user && !isStudent ? `
+      ${authState.user && !isStudent && !isAdmin ? `
         <div class="preface-card">
           <h2>👨‍🏫 Logged in as ${esc(authState.user.fullName)}</h2>
           <p class="subtitle">Add student/child profiles and select one so quiz statistics are recorded per profile.</p>
-          <div class="btn-row" style="margin-bottom:8px">
-            <input id="childName" class="input" type="text" placeholder="Child / student name">
-            <input id="childGrade" class="input" type="text" placeholder="Grade level">
-            <button id="btnAddChild" class="secondary">Add Child</button>
+          <div class="btn-row" style="margin-bottom:10px;flex-wrap:wrap">
+            <input id="childName" class="input" type="text" placeholder="Child / student name" style="flex:1;min-width:140px">
+            <input id="childGrade" class="input" type="text" placeholder="Grade level" style="flex:1;min-width:100px">
+            <button id="btnAddChild" class="secondary">➕ Add Child</button>
           </div>
           <div class="topic-list">${cOptions || `<p class="hint">No child profile yet. Add one to continue.</p>`}</div>
-          <div class="btn-row" style="justify-content:center;margin-top:10px">
-            <button id="btnContinueLearning" class="btn-glow" ${authState.childId ? "" : "disabled"}>Continue to Learning</button>
+          <div class="btn-row" style="justify-content:center;margin-top:12px;gap:10px">
+            <button id="btnContinueLearning" class="btn-glow" ${authState.childId ? "" : "disabled"}>🚀 Continue to Learning</button>
+            <button data-go="users" class="secondary">👥 View Students</button>
           </div>
         </div>
       ` : ""}
 
       ${authState.user && isStudent ? `
         <div class="preface-card">
-          <h2>🎓 Logged in as ${esc(authState.user.fullName)}</h2>
-          <p class="subtitle">Your learning profile is ready. Click below to start.</p>
-          <div class="btn-row" style="justify-content:center;margin-top:10px">
-            <button id="btnContinueLearning" class="btn-glow">Continue to Learning</button>
+          <h2>🎓 Welcome, ${esc(authState.user.fullName)}!</h2>
+          <p class="subtitle">Your learning profile is ready. Click below to start your adventure!</p>
+          <div class="btn-row" style="justify-content:center;margin-top:12px">
+            <button id="btnContinueLearning" class="btn-glow">🚀 Start Learning!</button>
+          </div>
+        </div>
+      ` : ""}
+
+      ${authState.user && isAdmin ? `
+        <div class="preface-card">
+          <h2>🛡️ Admin: ${esc(authState.user.fullName)}</h2>
+          <p class="subtitle">You have admin access. Manage users and view system stats.</p>
+          <div class="btn-row" style="justify-content:center;margin-top:12px;gap:10px">
+            <button data-go="admin" class="btn-glow">⚙️ Admin Dashboard</button>
+            <button data-go="users" class="secondary">👥 All Users</button>
           </div>
         </div>
       ` : ""}
@@ -1430,6 +1470,7 @@ function renderAuth() {
   on("btnModeRegister", "click", () => { authState.mode = "register"; draw(); });
   on("btnRoleTeacher",  "click", () => { authState.regRole = "teacher"; draw(); });
   on("btnRoleStudent",  "click", () => { authState.regRole = "student"; draw(); });
+  on("btnRoleAdmin",    "click", () => { authState.regRole = "admin";   draw(); });
 
   on("btnRegisterUser", "click", async () => {
     try {
@@ -1480,12 +1521,19 @@ function renderAuth() {
         authState.childId = child.id;
         saveSession();
         await loadChildProgress(child.id);
-        toast("Welcome back, " + out.user.fullName + "!");
+        toast("Welcome back, " + out.user.fullName + "! 🎉");
         appState.screen = "landing";
         draw();
         return;
       }
-      toast("Login successful.");
+      // Admin goes straight to admin dashboard
+      if (out.user.role === "admin") {
+        toast("Welcome, Admin " + out.user.fullName + "! 🛡️");
+        appState.screen = "admin";
+        draw();
+        return;
+      }
+      toast("Login successful. 🎊");
       draw();
     } catch (err) {
       swalPop({ title: "Login failed", text: err.message, icon: "error" });
@@ -1532,6 +1580,14 @@ function renderAuth() {
 
 // ─── SCREEN: Landing ──────────────────────────────────────────────────────────
 function renderLanding() {
+  const isStudent = authState.user?.role === "student";
+
+  if (isStudent) {
+    renderStudentBubbleLanding();
+    return;
+  }
+
+  // Teacher / admin landing (original animated teacher design)
   render(`
     <div class="landing-page landing-intro">
       <div class="teacher-stage">
@@ -1613,6 +1669,87 @@ function renderLanding() {
       allowOutsideClick: false
     }).then(r => {
       if (r.isConfirmed) { appState.screen = "preface"; draw(); }
+    });
+  });
+}
+
+// ─── SCREEN: Student Bubble Landing ──────────────────────────────────────────
+function renderStudentBubbleLanding() {
+  const child = authState.children.find(c => c.id === authState.childId);
+  const studentName = child?.childName || authState.user?.fullName || "Explorer";
+
+  const topicBubbles = TOPICS.map(t => `
+    <button class="bubble-topic" data-tid="${t.id}" style="background:linear-gradient(135deg,${t.color},${t.color}cc)">
+      <span class="bubble-topic-icon">${t.icon}</span>
+      <span>${esc(t.title.split(" ").slice(0, 4).join(" "))}</span>
+    </button>
+  `).join("");
+
+  render(`
+    <div class="bubble-landing">
+      <!-- Floating background bubbles -->
+      <div class="bubble-bg" aria-hidden="true">
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+        <div class="bubble-bg-circle"></div>
+      </div>
+
+      <!-- XP Panel -->
+      <div style="width:100%;position:relative;z-index:2">${xpPanel()}</div>
+
+      <!-- Welcome card -->
+      <div class="bubble-welcome motion-item" style="--motion-delay:100ms">
+        <div style="font-size:3rem;line-height:1">🌟</div>
+        <h1 class="bubble-welcome-title">Hey, ${esc(studentName)}!</h1>
+        <p class="bubble-welcome-sub">
+          Welcome to <strong>Sir Jayson's Math Adventure</strong>!<br>
+          Pick a topic bubble below and start learning. 🚀
+        </p>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn-glow" id="btnStartLearning">🚀 Start Learning!</button>
+        </div>
+      </div>
+
+      <!-- Topic bubbles -->
+      <div class="bubble-topics-row motion-item" style="--motion-delay:250ms">
+        ${topicBubbles}
+      </div>
+
+      <!-- Footer hint -->
+      <p class="hint" style="text-align:center;position:relative;z-index:2">
+        ✨ Tap a bubble to go straight to that topic, or hit <em>Start Learning</em> for the full experience!
+      </p>
+    </div>
+  `);
+
+  wireAccountButtons();
+
+  on("btnStartLearning", "click", () => {
+    swalPop({
+      title: "Ready to explore? 🎮",
+      html: `
+        <p>Choose a <strong>topic</strong> or continue from where you left off!</p>
+        <p style="margin-top:8px;font-size:.9em;opacity:.8">Earn XP • Unlock Badges • Master every topic!</p>`,
+      confirmButtonText: "Let's go! 🚀",
+      allowOutsideClick: false
+    }).then(r => {
+      if (r.isConfirmed) { appState.screen = "modules"; draw(); }
+    });
+  });
+
+  document.querySelectorAll(".bubble-topic[data-tid]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tid = Number(btn.dataset.tid);
+      appState.topicId = tid;
+      const nextPhase = [1, 2, 3, 4].find(p => !phaseIsComplete(tid, p)) || 1;
+      appState.topicPhase = nextPhase;
+      appState.screen = "topic";
+      draw();
     });
   });
 }
@@ -1705,9 +1842,13 @@ function renderModules() {
       <h2>📚 Topics</h2>
       <p class="subtitle">Each topic follows 4 phases: Motivation → Discussion → Activity → Assessment</p>
       <div class="topic-list" id="topicList">${cards}</div>
-      <div class="btn-row spread" style="margin-top:8px">
+      <div class="btn-row spread" style="margin-top:10px;flex-wrap:wrap;gap:8px">
         <button data-go="preface" class="secondary">← Preface</button>
-        <button data-go="analytics" class="secondary">📊 Results & Analytics</button>
+        <div class="btn-row" style="gap:8px">
+          ${authState.user?.role !== "student" ? `<button data-go="users" class="secondary">👥 Students</button>` : ""}
+          ${authState.user?.role === "admin" ? `<button data-go="admin" class="secondary">🛡️ Admin</button>` : ""}
+          <button data-go="analytics" class="secondary">📊 Analytics</button>
+        </div>
       </div>
     </div>
   `);
@@ -3235,6 +3376,298 @@ function drawAnalyticsChart(i, s, p) {
   });
 }
 
+// ─── SCREEN: Users (Teacher & Admin view of students) ─────────────────────────
+async function renderUsers() {
+  const role = authState.user?.role;
+  if (!role || role === "student") {
+    appState.screen = "modules"; draw(); return;
+  }
+
+  render(`
+    <div class="preface-page">
+      <div class="preface-card"><h2>⏳ Loading users…</h2></div>
+    </div>
+  `);
+
+  let rows = [];
+  try {
+    rows = await api("/api/users");
+  } catch (err) {
+    render(`
+      <div class="users-page">
+        <div class="preface-card">
+          <h2>⚠️ Could not load users</h2>
+          <p class="subtitle">${esc(err.message)}</p>
+          <div class="btn-row" style="margin-top:10px">
+            <button data-go="modules" class="secondary">← Back to Topics</button>
+          </div>
+        </div>
+      </div>
+    `);
+    wireDataGo();
+    return;
+  }
+
+  const isAdminView = role === "admin";
+
+  let tableBody = "";
+  if (isAdminView) {
+    // Admin sees all users
+    tableBody = rows.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td><strong>${esc(u.fullName)}</strong></td>
+        <td>${esc(u.email)}</td>
+        <td><span class="user-role-chip ${u.role}">${u.role}</span></td>
+        <td>${u.childCount}</td>
+        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
+      </tr>
+    `).join("");
+  } else {
+    // Teacher sees their enrolled students
+    tableBody = rows.map(s => `
+      <tr>
+        <td><strong>${esc(s.childName)}</strong></td>
+        <td>${s.gradeLevel ? esc(s.gradeLevel) : "—"}</td>
+        <td>
+          <span class="xp-chip" style="font-size:.78rem;padding:3px 8px">⚡ Lv.${s.level} · ${s.xp} XP</span>
+        </td>
+        <td>${s.badges} 🏅</td>
+        <td>${s.progressUpdated ? new Date(s.progressUpdated).toLocaleDateString() : "Not started"}</td>
+      </tr>
+    `).join("");
+  }
+
+  const headers = isAdminView
+    ? `<tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Students</th><th>Joined</th></tr>`
+    : `<tr><th>Student</th><th>Grade</th><th>Progress</th><th>Badges</th><th>Last Active</th></tr>`;
+
+  const emptyMsg = isAdminView
+    ? "No users registered yet."
+    : "No students enrolled yet. Add child profiles to see them here.";
+
+  render(`
+    <div class="users-page">
+      <div class="users-page-header">
+        <h2>👥 ${isAdminView ? "All Users" : "My Students"}</h2>
+        <div class="btn-row">
+          ${role === "admin" ? `<button data-go="admin" class="secondary">🛡️ Admin</button>` : ""}
+          <button data-go="modules" class="secondary">← Back to Topics</button>
+        </div>
+      </div>
+
+      <div class="stat-card-row">
+        <div class="stat-card">
+          <div class="stat-card-icon">👤</div>
+          <div class="stat-card-value">${rows.length}</div>
+          <div class="stat-card-label">${isAdminView ? "Total Users" : "Students Enrolled"}</div>
+        </div>
+        ${isAdminView ? `
+          <div class="stat-card">
+            <div class="stat-card-icon">🎓</div>
+            <div class="stat-card-value">${rows.filter(r => r.role === "student").length}</div>
+            <div class="stat-card-label">Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">👨‍🏫</div>
+            <div class="stat-card-value">${rows.filter(r => r.role === "teacher").length}</div>
+            <div class="stat-card-label">Teachers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🛡️</div>
+            <div class="stat-card-value">${rows.filter(r => r.role === "admin").length}</div>
+            <div class="stat-card-label">Admins</div>
+          </div>
+        ` : `
+          <div class="stat-card">
+            <div class="stat-card-icon">⚡</div>
+            <div class="stat-card-value">${rows.filter(s => s.level > 1).length}</div>
+            <div class="stat-card-label">Actively Learning</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🏅</div>
+            <div class="stat-card-value">${rows.reduce((sum, s) => sum + (s.badges || 0), 0)}</div>
+            <div class="stat-card-label">Total Badges Earned</div>
+          </div>
+        `}
+      </div>
+
+      <div class="users-table-wrap">
+        ${rows.length === 0 ? `<div class="user-empty-state">🌟 ${emptyMsg}</div>` : `
+          <table class="users-table">
+            <thead>${headers}</thead>
+            <tbody>${tableBody}</tbody>
+          </table>
+        `}
+      </div>
+    </div>
+  `);
+
+  wireDataGo();
+}
+
+// ─── SCREEN: Admin Dashboard ──────────────────────────────────────────────────
+async function renderAdmin() {
+  if (authState.user?.role !== "admin") {
+    appState.screen = "modules"; draw(); return;
+  }
+
+  render(`
+    <div class="preface-page">
+      <div class="preface-card"><h2>⏳ Loading admin data…</h2></div>
+    </div>
+  `);
+
+  let stats = {}, users = [];
+  try {
+    [stats, users] = await Promise.all([
+      api("/api/admin?action=stats"),
+      api("/api/admin?action=users")
+    ]);
+  } catch (err) {
+    render(`
+      <div class="admin-page">
+        <div class="preface-card">
+          <h2>⚠️ Admin load failed</h2>
+          <p class="subtitle">${esc(err.message)}</p>
+          <div class="btn-row" style="margin-top:10px">
+            <button data-go="modules" class="secondary">← Back</button>
+          </div>
+        </div>
+      </div>
+    `);
+    wireDataGo();
+    return;
+  }
+
+  const userRows = users.map(u => `
+    <tr id="admin-user-row-${u.id}">
+      <td>${u.id}</td>
+      <td><strong>${esc(u.fullName)}</strong></td>
+      <td>${esc(u.email)}</td>
+      <td>
+        <select class="admin-role-select input" data-uid="${u.id}" style="max-width:110px">
+          ${["teacher","student","admin"].map(r =>
+            `<option value="${r}" ${u.role === r ? "selected" : ""}>${r}</option>`
+          ).join("")}
+        </select>
+      </td>
+      <td>${u.childCount}</td>
+      <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
+      <td>
+        <button class="admin-danger-btn" data-delete="${u.id}"
+          ${u.id === authState.user?.id ? "disabled title='Cannot delete yourself'" : ""}>
+          🗑️ Delete
+        </button>
+      </td>
+    </tr>
+  `).join("");
+
+  render(`
+    <div class="admin-page">
+      <div class="users-page-header">
+        <h2>🛡️ Admin Dashboard</h2>
+        <div class="btn-row">
+          <button data-go="users" class="secondary">👥 Users Page</button>
+          <button data-go="modules" class="secondary">← Back to Topics</button>
+        </div>
+      </div>
+
+      <div class="admin-section-title">📊 System Overview</div>
+      <div class="stat-card-row">
+        <div class="stat-card">
+          <div class="stat-card-icon">👤</div>
+          <div class="stat-card-value">${stats.totalUsers}</div>
+          <div class="stat-card-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">🎓</div>
+          <div class="stat-card-value">${stats.totalStudents}</div>
+          <div class="stat-card-label">Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">👨‍🏫</div>
+          <div class="stat-card-value">${stats.totalTeachers}</div>
+          <div class="stat-card-label">Teachers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">🛡️</div>
+          <div class="stat-card-value">${stats.totalAdmins}</div>
+          <div class="stat-card-label">Admins</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">📝</div>
+          <div class="stat-card-value">${stats.totalAssessments}</div>
+          <div class="stat-card-label">Assessments Taken</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">📋</div>
+          <div class="stat-card-value">${stats.totalChildren}</div>
+          <div class="stat-card-label">Enrolled Profiles</div>
+        </div>
+      </div>
+
+      <div class="admin-section-title">⚙️ User Management</div>
+      <p class="hint" style="margin-bottom:8px">Change roles or delete users. Deletions are permanent and cascade to all student data.</p>
+      <div class="users-table-wrap">
+        ${users.length === 0 ? `<div class="user-empty-state">No users yet.</div>` : `
+          <table class="users-table" id="adminUsersTable">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Profiles</th><th>Joined</th><th>Action</th></tr>
+            </thead>
+            <tbody>${userRows}</tbody>
+          </table>
+        `}
+      </div>
+    </div>
+  `);
+
+  wireDataGo();
+
+  // Role change handler
+  document.querySelectorAll(".admin-role-select").forEach(sel => {
+    sel.addEventListener("change", async () => {
+      const uid = Number(sel.dataset.uid);
+      const newRole = sel.value;
+      try {
+        await api("/api/admin", {
+          method: "PUT",
+          body: JSON.stringify({ id: uid, role: newRole })
+        });
+        toast("Role updated to " + newRole + " ✓");
+      } catch (err) {
+        swalPop({ title: "Update failed", text: err.message, icon: "error" });
+        renderAdmin(); // refresh
+      }
+    });
+  });
+
+  // Delete handler
+  document.querySelectorAll("[data-delete]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const uid = Number(btn.dataset.delete);
+      const user = users.find(u => u.id === uid);
+      const ok = await swalPop({
+        title: "Delete User?",
+        html: `<p>This will permanently delete <strong>${esc(user?.fullName || "this user")}</strong> and all their data.</p>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#ef4444"
+      });
+      if (!ok.isConfirmed) return;
+      try {
+        await api(`/api/admin?id=${uid}`, { method: "DELETE" });
+        toast("User deleted ✓");
+        renderAdmin(); // refresh
+      } catch (err) {
+        swalPop({ title: "Delete failed", text: err.message, icon: "error" });
+      }
+    });
+  });
+}
+
 // ─── Gamification ─────────────────────────────────────────────────────────────
 function launchConfetti() {
   const canvas = byId("confettiCanvas");
@@ -3281,7 +3714,7 @@ function toggleTheme() {
   if (btn) btn.textContent = next === "light" ? "☀" : "☾";
 }
 function loadTheme() {
-  const t = localStorage.getItem("sirjayson_theme") || "dark";
+  const t = localStorage.getItem("sirjayson_theme") || "light";
   document.documentElement.setAttribute("data-theme", t);
   const btn = byId("themeToggle");
   if (btn) btn.textContent = t === "light" ? "☀" : "☾";

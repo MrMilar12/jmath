@@ -20,8 +20,8 @@ if (strlen($password) < 6) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     respond(['error' => 'Invalid email address'], 400);
 }
-if (!in_array($role, ['teacher', 'student'], true)) {
-    respond(['error' => 'role must be teacher or student'], 400);
+if (!in_array($role, ['teacher', 'student', 'admin'], true)) {
+    respond(['error' => 'role must be teacher, student, or admin'], 400);
 }
 
 $db   = get_db();
