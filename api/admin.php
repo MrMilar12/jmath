@@ -62,15 +62,22 @@ if ($method === 'DELETE') {
         respond(['error' => 'Cannot delete your own account'], 400);
     }
 
-    // Cascade delete: assessment results → child progress → children → user
-    $db->prepare(
-        'DELETE FROM assessment_results WHERE child_id IN (SELECT id FROM children WHERE user_id = ?)'
-    )->execute([$targetId]);
-    $db->prepare(
-        'DELETE FROM child_progress WHERE child_id IN (SELECT id FROM children WHERE user_id = ?)'
-    )->execute([$targetId]);
-    $db->prepare('DELETE FROM children WHERE user_id = ?')->execute([$targetId]);
-    $db->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
+    // Cascade delete atomically: assessment results → child progress → children → user
+    $db->beginTransaction();
+    try {
+        $db->prepare(
+            'DELETE FROM assessment_results WHERE child_id IN (SELECT id FROM children WHERE user_id = ?)'
+        )->execute([$targetId]);
+        $db->prepare(
+            'DELETE FROM child_progress WHERE child_id IN (SELECT id FROM children WHERE user_id = ?)'
+        )->execute([$targetId]);
+        $db->prepare('DELETE FROM children WHERE user_id = ?')->execute([$targetId]);
+        $db->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
+        $db->commit();
+    } catch (\Throwable $e) {
+        $db->rollBack();
+        respond(['error' => 'Delete failed: ' . $e->getMessage()], 500);
+    }
 
     respond(['ok' => true]);
 }

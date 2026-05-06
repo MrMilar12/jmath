@@ -151,6 +151,7 @@ h4 { font-size: 1.05rem; }
   overflow: hidden;
   border: 2px solid var(--panel-b);
 }
+.xp-bar-full { width: 100%; flex-basis: 100%; }
 .xp-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--accent2));
@@ -1414,7 +1415,6 @@ canvas {
   #app { padding: 16px; }
   .chart-row, .stats-result-grid, .quiz-inline { grid-template-columns: 1fr; }
   .xp-panel { justify-content: flex-start; }
-  .xp-panel .xp-bar-outer { width: 100%; flex-basis: 100%; }
   .phase-bar .phase-step { min-width: 44px; font-size: .65rem; }
   .voice-dock { justify-content: center; }
   .teacher-guide { grid-template-columns: 1fr; }

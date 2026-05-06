@@ -1344,7 +1344,7 @@ function xpPanel() {
       ${adminLinks}
       ${switchBtn}
       <button id="btnLogout" class="secondary" type="button">Logout</button>
-      <div class="xp-bar-outer" style="width:100%;flex-basis:100%"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
+      <div class="xp-bar-outer xp-bar-full"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
     </div>
   `;
 }
